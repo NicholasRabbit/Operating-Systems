@@ -1,4 +1,4 @@
-#### 1, Create Environment for labs of 6.S081
+### 1, Build Environment for labs of 6.S081
 
 1) Install Ubuntu 20.04 on WSL or VM. 
     The version must be 20.04. 
@@ -29,23 +29,6 @@ Notice that the distributed version and the`Codename` of mirrors must be matched
 
 "ubuntu 20.04 LTS (focal) "
 
-```txt
-deb https://mirrors.aliyun.com/ubuntu/ focal main restricted universe multiverse
-deb-src https://mirrors.aliyun.com/ubuntu/ focal main restricted universe multiverse
-
-deb https://mirrors.aliyun.com/ubuntu/ focal-security main restricted universe multiverse
-deb-src https://mirrors.aliyun.com/ubuntu/ focal-security main restricted universe multiverse
-
-deb https://mirrors.aliyun.com/ubuntu/ focal-updates main restricted universe multiverse
-deb-src https://mirrors.aliyun.com/ubuntu/ focal-updates main restricted universe multiverse
-
-# deb https://mirrors.aliyun.com/ubuntu/ focal-proposed main restricted universe multiverse
-# deb-src https://mirrors.aliyun.com/ubuntu/ focal-proposed main restricted universe multiverse
-
-deb https://mirrors.aliyun.com/ubuntu/ focal-backports main restricted universe multiverse
-deb-src https://mirrors.aliyun.com/ubuntu/ focal-backports main restricted universe multiverse
-```
-
  From  [Aliyun mirrors of Ubuntu](https://developer.aliyun.com/mirror/ubuntu)
 
 2.3 Update `apt`
@@ -74,13 +57,20 @@ sudo apt-get install qemu-system-misc=1:4.2-3ubuntu6
 
 
 
-#### 2, Test
+### 2, start riscv6
+
+1) Check if all the tools needed are installed.
 
 ```shell
 riscv64-unknown-elf-gcc --version 
 # riscv64-unknown-elf-gcc (GCC) 10.1.0
 qemu-system-riscv64 --version
 # QEMU emulator version 5.1.0
+```
+
+2) Down the git repository of the lab
+
+```shell
 git clone git://g.csail.mit.edu/xv6-labs-2020 
 # N.B. the repository is "xv6-labs-2020"
 cd xv6-labs-2020
@@ -90,9 +80,75 @@ make qemu
 # run the above command in the "until" branch of the repository 
 ```
 
-Note: run `make qemu` at `git://g.csail.mit.edu/xv6-labs-2020 `.The `xv6 directory` is root directory of the repository.
+3) Note: run `make qemu` at `git://g.csail.mit.edu/xv6-labs-2020 `.The `xv6 directory` is root directory of this repository. This command creates a machine simulator for RSCV XV6. 
 
 <img src="note-images/1728728662500.png" alt="1728728662500" style="zoom: 80%;" />
+
+3) Note:  You had better set a single core for the CPU of `QEMU`, or the breakpoints will be executed multiple times. 
+
+```shell
+make CPUS=1 qemu
+```
+
+4) Other commands of `QEMU`
+
+To check the console of `QEMU`. There is nothing displayed in the CLI. You should input like 'info mem' to check the memory.  After running the `QEMU`, you can execute the following commands. 
+
+```shell
+Ctrl + a, c # press Ctrl and a at the same time and release them, then press c.
+(qemu) info mem
+```
+
+
+
+**Exit qemu**
+
+N.B. Don't press the three keys at the same time. First press Ctrl + A, then release them and press X. 
+
+### 3, Explanation of Terminologies
+
+QEMU: It is simulation of hard ware.
+
+### 4, Labs
+
+#### 1, Lab 1
+
+1.1) sleep
+
+a. In the root directory of `/xv6-labs-2020/` , switch to the `until` branch.
+
+```shell
+git checkout util
+```
+
+b. Create the file named `sleep.c` in `user/` and write the code. 
+
+c. Add the following code to `Makefile`
+
+`/xv6-labs-2020/Makefile`
+
+```makefile
+UPROGS=\
+	.....
+	$U/_zombie\
+	$U/_sleep\
+```
+
+d. Run `QEMU` 
+
+```SHELL
+make CPUS=1 qemu / make qemu
+```
+
+e. Input `sleep 20` to test if the `sleep(...)` is called. If the programme is correct, there will be a pause before the next `$` appears.
+
+```txt
+$ sleep 20
+nothing happens for a while
+$ 
+```
+
+
 
 
 
