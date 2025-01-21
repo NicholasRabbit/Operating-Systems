@@ -103,7 +103,7 @@ Ctrl + a, c
 
 ```shell
 Ctrl + A 
-# then
+# and then
 X
 ```
 
@@ -117,9 +117,75 @@ QEMU: It is simulation of hard ware.
 
 Before doing any lab read [the guidance](https://pdos.csail.mit.edu/6.828/2021/labs/guidance.html) thoroughly.
 
+Excerpts from the guidance.
+
+> A few pointer common idioms are in particular worth remembering: 
+>
+> - If `int *p = (int*)100`, then     `(int)p + 1` and `(int)(p + 1)`    are different numbers: the first is `101` but    the second is `104`.    When adding an integer to a pointer, as in the second case,    the integer is implicitly multiplied by the size of the object  the pointer points to.
+> - `p[i]` is defined to be the same as `*(p+i)`, referring to the i'th object in the memory pointed to by p. The above rule for addition helps this definition work when the objects are larger than one byte.
+> -  `&p[i]` is the same as `(p+i)`, yielding the address of the i'th object in the memory pointed to by p.
+
+#### 0, Preparation and Exercises
+
+[exercieses](./exercises)
+
+The following code is from [pointers](https://pdos.csail.mit.edu/6.828/2019/lec/pointers.c).
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+void
+f(void)
+{
+    int a[4];
+    int *b = malloc(16);
+    int *c;
+    int i;
+
+    printf("1: a = %p, b = %p, c = %p\n", a, b, c);
+
+    c = a;
+    for (i = 0; i < 4; i++)
+		a[i] = 100 + i;
+    c[0] = 200;
+    printf("2: a[0] = %d, a[1] = %d, a[2] = %d, a[3] = %d\n",
+	   a[0], a[1], a[2], a[3]);
+
+    c[1] = 300;
+    *(c + 2) = 301;
+    3[c] = 302;
+    printf("3: a[0] = %d, a[1] = %d, a[2] = %d, a[3] = %d\n",
+	   a[0], a[1], a[2], a[3]);
+
+    c = c + 1;
+    *c = 400;
+    printf("4: a[0] = %d, a[1] = %d, a[2] = %d, a[3] = %d\n",
+	   a[0], a[1], a[2], a[3]);
+
+    c = (int *) ((char *) c + 1);
+    *c = 500;
+    printf("5: a[0] = %d, a[1] = %d, a[2] = %d, a[3] = %d\n",
+	   a[0], a[1], a[2], a[3]);
+
+    b = (int *) a + 1;
+    c = (int *) ((char *) a + 1);
+    printf("6: a = %p, b = %p, c = %p\n", a, b, c);
+}
+
+int
+main(int ac, char **av)
+{
+    f();
+    return 0;
+}
+```
+
+
+
 #### 1, Lab 1
 
-1.1) sleep
+##### 1.1) sleep
 
 a. In the root directory of `/xv6-labs-2020/` , switch to the `until` branch.
 
@@ -179,5 +245,7 @@ $
 
 
 
+##### 1.2) pingpong
 
+**N.B.** The function `fork()` is in `./kernel/proc.c`
 
