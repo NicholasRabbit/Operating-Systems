@@ -55,8 +55,6 @@ sudo apt-get remove qemu-system-misc
 sudo apt-get install qemu-system-misc=1:4.2-3ubuntu6
 ```
 
-
-
 ### 2, start riscv6
 
 1) Check if all the tools needed are installed.
@@ -92,24 +90,32 @@ make CPUS=1 qemu
 
 4) Other commands of `QEMU`
 
-To check the console of `QEMU`. There is nothing displayed in the CLI. You should input like 'info mem' to check the memory.  After running the `QEMU`, you can execute the following commands. 
+To check the console of `QEMU`. There is nothing displayed in the CLI. You should input like `info mem` to check the memory.  After running the `QEMU`, you can execute the following commands. 
 
 ```shell
-Ctrl + a, c # press Ctrl and a at the same time and release them, then press c.
-(qemu) info mem
+#Step 1: press Ctrl and a at the same time and release them, then press c.
+Ctrl + a, c 
+#Step 2
+(qemu) info mem # This command can only execute after the preceding command. 
 ```
-
-
 
 **Exit qemu**
 
-N.B. Don't press the three keys at the same time. First press Ctrl + A, then release them and press X. 
+```shell
+Ctrl + A 
+# then
+X
+```
+
+N.B. Don't press the three keys at the same time. First press `Ctrl + A`, then release them and press `X`. 
 
 ### 3, Explanation of Terminologies
 
 QEMU: It is simulation of hard ware.
 
 ### 4, Labs
+
+Before doing any lab read [the guidance](https://pdos.csail.mit.edu/6.828/2021/labs/guidance.html) thoroughly.
 
 #### 1, Lab 1
 
@@ -122,6 +128,29 @@ git checkout util
 ```
 
 b. Create the file named `sleep.c` in `user/` and write the code. 
+
+```c
+#include "kernel/types.h"
+#include "user/user.h"
+
+int main(int argc, char* argv[]) 
+{
+	// Handling the error of illegal arguments
+	if (argc != 2) {
+		printf("Only need 2 arguments");
+		exit(-1);
+	}
+	
+	// The format of the command: argv = {"name of an instruction", "argv"}
+	// An example: argv = {"sleep", "3"}
+	int num_of_ticks = atoi(argv[1]);  // cast a string data to an integer.
+	// call the system's function 'sleep(...)'.
+	sleep(num_of_ticks);
+	exit(0);
+}
+```
+
+
 
 c. Add the following code to `Makefile`
 
