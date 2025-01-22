@@ -5,11 +5,17 @@
 
 ### 1, What are operating systems? 
 
+##### 1.1 Operating Systems
+
 An operating system is kind of a collection of some basic functions which can share hardware among applications-which are that we, common users, actually use. 
 
 Typically, there are two different spaces in a operating system. See Figure 1.1. Software 
 
 ![1730106917551](note-images/1730106917551.png)
+
+##### 1.2 What is a kernel?
+
+A kernel is a special programme which provides services to run programmes in user space. Each running programme, which is called a process, has memory containing instructions, data and a stack.  Normally, an operating system has only one kernel but has many process. 
 
 ### 2, Purposes of OS
 
