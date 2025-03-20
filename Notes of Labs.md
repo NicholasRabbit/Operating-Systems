@@ -1,4 +1,4 @@
-### 1, Build Environment for labs of 6.S081
+### 1, Building Environment for labs of 6.S081
 
 1) Install Ubuntu 20.04 on WSL or VM. 
     The version must be 20.04. 
