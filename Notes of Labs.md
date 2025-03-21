@@ -6,7 +6,7 @@
 ​    Check the version of it.
 
 ```shell
-lab_release -a
+lsb_release -a
 # Notice the codename which should be match version of the mirrors in Aliyun.
 No LSB modules are available.
 Distributor ID: Ubuntu
@@ -44,7 +44,7 @@ sudo apt upgrade
 sudo apt-get install git build-essential gdb-multiarch qemu-system-misc gcc-riscv64-linux-gnu binutils-riscv64-linux-gnu
 ```
 
-**N.B. The reason that I couldn't install the tools is the Ubuntu official server is not  connected in China.**
+**N.B. The reason that I couldn't install the tools is the Ubuntu official server is not  accessed in China.**
 
 Other: 
 
@@ -55,7 +55,9 @@ sudo apt-get remove qemu-system-misc
 sudo apt-get install qemu-system-misc=1:4.2-3ubuntu6
 ```
 
-### 2, start riscv6
+[A guidance from bilibili](./note-images\building env of the labs of 6-S081.txt) (it has not been verified).
+
+### 2, Start Riscv 6
 
 1) Check if all the tools needed are installed.
 
@@ -184,6 +186,8 @@ main(int ac, char **av)
 
 
 #### 1, Lab 1
+
+Note: `fork(...)` is in `kernel/proc.c`
 
 ##### 1.1) sleep
 
