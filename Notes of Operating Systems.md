@@ -4,6 +4,7 @@
 
 1. Learning pointers in C.
 2. Read the [guidance](https://pdos.csail.mit.edu/6.828/2021/labs/guidance.html) before you do any lab.
+3. [Schedule](https://pdos.csail.mit.edu/6.828/2021/schedule.html)
 
 ### 1, What are operating systems? 
 
