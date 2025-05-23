@@ -38,3 +38,12 @@ A kernel is a special programme which provides services to run programmes in use
 ### 3, What is a Process?
 
 Each application in user space is a process and have a unique process identifier(PID)
+
+### 4, What are file descriptors?
+
+[An answer from StackOverflow.](https://stackoverflow.com/questions/5256599/what-are-file-descriptors-explained-in-simple-terms)
+
+> In simple words, when you open a file, the operating system creates an entry to represent that file and store the information about that opened file. So if there are 100 files opened in your OS then there will be 100 entries in OS (somewhere in kernel). These entries are represented by integers like (...100, 101, 102....). This entry number is the file descriptor. So it is just an integer number that uniquely represents an opened file for the process. If your process opens 10 files then your Process table will have 10 entries for file descriptors.
+>
+> Similarly, when you open a network socket, it is also represented by an integer and it is called Socket Descriptor. I hope you understand.
+
