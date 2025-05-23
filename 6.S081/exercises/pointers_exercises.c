@@ -30,8 +30,8 @@ void f(void)
 			a[0], a[1], a[2], a[3]);
 
 	/*
-	 * If a pointer add a integer, it will implicitly add the result of multiplication of the
-	 * integer and the size of the data which is pointed by the pointer.
+	 * If a pointer add an integer, it will implicitly add a multiply of the
+	 * integer and the size of the data which is referenced by the pointer.
 	 * For instance, for a int pointer "c + 2" equals "c + (2x4)";
 	 * */
 	c[1] = 300;
