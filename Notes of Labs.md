@@ -239,7 +239,7 @@ d. Run `QEMU`
 make CPUS=1 qemu / make qemu
 ```
 
-e. Input `sleep 20` to test if the `sleep(...)` is called. If the programme is correct, there will be a pause before the next `$` appears.
+e. Input `sleep 20` to test if the `sleep(...)` is called. If the programme is correct, there will be a pause before the next `$` appears. N.B. one tick clock is not necessarily equivalent to a second. 
 
 ```txt
 $ sleep 20

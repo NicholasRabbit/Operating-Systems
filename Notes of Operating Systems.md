@@ -1,10 +1,17 @@
 ## 6.S081 
 
+The Objectives of 6.S081
+
+1. Will extend a simple OS named XV6. Labs are designed for students to write some functions to extend the XV6. For example, in the first lab we should write a sleep function to let the OS fall asleep. 
+2. 
+
 ### 0, Learning Tips
 
 1. Learning pointers in C.
 2. Read the [guidance](https://pdos.csail.mit.edu/6.828/2021/labs/guidance.html) before you do any lab.
 3. [Schedule](https://pdos.csail.mit.edu/6.828/2021/schedule.html)
+4. The textbook should be read along with the source code of xv6.
+5. "&c" means "etc" or "et cetera".
 
 ### 1, What are operating systems? 
 
@@ -20,7 +27,7 @@ Typically, there are two different spaces in a operating system. See Figure 1.1.
 
 A kernel is a special programme which provides services to run programmes in user space. Each running programme, which is called a process, has memory containing instructions, data and a stack.  Normally, an operating system has only one kernel but has many process. 
 
-### 2, Purposes of OS
+### 2, Purposes of An OS
 
 **What the purposes for which these operating systems are made for?**
 
@@ -46,4 +53,57 @@ Each application in user space is a process and have a unique process identifier
 > In simple words, when you open a file, the operating system creates an entry to represent that file and store the information about that opened file. So if there are 100 files opened in your OS then there will be 100 entries in OS (somewhere in kernel). These entries are represented by integers like (...100, 101, 102....). This entry number is the file descriptor. So it is just an integer number that uniquely represents an opened file for the process. If your process opens 10 files then your Process table will have 10 entries for file descriptors.
 >
 > Similarly, when you open a network socket, it is also represented by an integer and it is called Socket Descriptor. I hope you understand.
+
+## Notes of Every Lectures
+
+### Lecture 1
+
+1, Code examples 
+
+(1) `copy.c`. Note that the file descriptors are different in `copy.c` so that the content could be copied from one file to another. 
+
+```c
+// copy.c: copy input to output.
+
+#include "kernel/types.h"
+#include "user/user.h"
+int
+main()
+{
+  char buf[64];
+  while(1){
+    int n = read(0, buf, sizeof(buf));  // Read from a file with file descriptor 0.
+    if(n <= 0)
+      break;
+    write(1, buf, n); // Write content from buf to a file whit file descriptor 1.
+  }
+  exit(0);
+}
+```
+
+```c
+// Here are system calls called by 'copy.c': read(...) and write(...)
+int read(int fd, char *buf, int n);
+int write(int fd, char *buf, int n);
+```
+
+(2) `open.c`
+
+```c
+// open.c: create a file, write to it.
+#include "kernel/types.h"
+#include "user/user.h"
+#include "kernel/fcntl.h"
+
+int
+main()
+{
+  int fd = open("output.txt", O_WRONLY | O_CREATE);
+  write(fd, "ooo\n", 4);
+
+  exit(0);
+}
+```
+
+
 
