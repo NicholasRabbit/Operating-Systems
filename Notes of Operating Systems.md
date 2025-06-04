@@ -87,7 +87,37 @@ int read(int fd, char *buf, int n);
 int write(int fd, char *buf, int n);
 ```
 
-(2) `open.c`
+(2) `echo.c`
+
+Why does the `i` start from 1 in the following `for` loop?
+
+Because the first element in `argc[]` is the name of the executed file, namely `echo.c`. (It is definitely necessary to learn C comprehensively.)
+
+```c
+#include "kernel/types.h"
+#include "user/user.h"
+int
+main(int argc, char *argv[])
+{
+  int i;
+
+  for(i = 1; i < argc; i++){
+    write(1, argv[i], strlen(argv[i]));
+    if(i + 1 < argc){
+      write(1, " ", 1);
+    } else {
+      write(1, "\n", 1);
+    }
+  }
+  exit(0);
+}
+```
+
+
+
+(3) `open.c`
+
+`O_WRONLY | O_CREATE` is from `kernel/fcntl.h`.
 
 ```c
 // open.c: create a file, write to it.
@@ -101,6 +131,30 @@ main()
   int fd = open("output.txt", O_WRONLY | O_CREATE);
   write(fd, "ooo\n", 4);
 
+  exit(0);
+}
+```
+
+(4) `exec.c`
+
+Why is the system call `exec(...)` followed by `printf(...)` immediately without any condition? Does it execute all the time?
+
+Because the system call `exec(...)` will return only if there is an error.
+
+Apparently, ` printf("exec failed!\n");` will execute when it incurs an error in the system call `exec`.
+
+```c
+// exec.c: replace a process with an executable file
+#include "kernel/types.h"
+#include "user/user.h"
+
+int
+main()
+{
+  char *argv[] = { "echo", "this", "is", "echo", 0 };
+  exec("echo", argv);
+  printf("exec failed!\n");
+  
   exit(0);
 }
 ```
