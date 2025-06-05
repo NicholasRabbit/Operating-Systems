@@ -27,6 +27,12 @@ Typically, there are two different spaces in a operating system. See Figure 1.1.
 
 A kernel is a special programme which provides services to run programmes in user space. Each running programme, which is called a process, has memory containing instructions, data and a stack.  Normally, an operating system has only one kernel but has many process. 
 
+##### 1.3 What is RISC-V?
+
+RISC-V, which is an acronym of Reduced Instruction Set Computer-Five,  is an open-source instruction set architecture. 
+
+<img src="note-images/1749114644861.png" alt="1749114644861" style="zoom:67%;" />
+
 ### 2, Purposes of An OS
 
 **What the purposes for which these operating systems are made for?**
@@ -44,7 +50,9 @@ A kernel is a special programme which provides services to run programmes in use
 
 ### 3, What is a Process?
 
-Each application in user space is a process and have a unique process identifier(PID)
+Each application in user space is a process and have a unique process identifier(PID). A process is prepared for running a programme.
+
+The kernel of an OS manages processes. 
 
 ### 4, What are file descriptors?
 
@@ -57,6 +65,14 @@ Each application in user space is a process and have a unique process identifier
 ## Notes of Every Lectures
 
 ### Lecture 1
+
+**What are system calls?**
+
+System calls are interfaces offered by the kernel of an operating system for applications in user space.
+
+When a system call are being called, they jump into the kernel to execute. The kernel retrieves the arguments in the system call and do its job. 
+
+
 
 1, Code examples 
 
