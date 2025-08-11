@@ -53,7 +53,7 @@ RISC-V, which is an acronym of Reduced Instruction Set Computer-Five,  is an ope
 
 <img src="note-images/1749114644861.png" alt="1749114644861" style="zoom:67%;" />
 
-### 2, Purposes of An OS
+### 2, Purposes of Operating Systems
 
 **What the purposes for which these operating systems are made for?**
 
@@ -78,11 +78,11 @@ RISC-V, which is an acronym of Reduced Instruction Set Computer-Five,  is an ope
 >
 > Similarly, when you open a network socket, it is also represented by an integer and it is called Socket Descriptor. I hope you understand.
 
+In Unix-like operating systems, such as RISC, file descriptor 0 is input, file descriptor 1 is output and file descriptor 2 is for error.
+
 ## Notes of Every Lectures
 
 ### Lecture 1
-
-
 
 
 
