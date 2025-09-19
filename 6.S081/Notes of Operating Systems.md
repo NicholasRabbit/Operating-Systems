@@ -41,6 +41,14 @@ Each application in user space is a process and have a unique process identifier
 
 The kernel of an OS manages processes. 
 
+**Why does a process create a new process by using the `fork()`?**
+
+The original process and the new process are called *parent* and *child*, respectively.
+
+[Here is an answer for Stack Overflow.](https://stackoverflow.com/questions/8292217/why-fork-works-the-way-it-does)
+
+As an illustration, when the *shell* is running, a user input `echo foo` in the CLI. If *shell*  calls `exec()` directly to execute `echo`, the current *shell* will be replaced by the echo and it is killed, so there won't be any CLI any more. 
+
 ##### 1.3 What are system calls?
 
 System calls are interfaces offered by the kernel of an operating system for applications in user space.
@@ -72,120 +80,40 @@ RISC-V, which is an acronym of Reduced Instruction Set Computer-Five,  is an ope
 
 ### 4. What are file descriptors?
 
+*From the textbook of 6.S081:*
+
+A file descriptor is a small integer represent a kernel-managed object that a process may read from or write to. Attention should be paid here is that the object is not only normal files but also is a directory, a device or a pipe; they are all represented by file descriptors. The reason why we refer to all of them with descriptors is that it abstracts away from the difference between files, devices, and devices so that their interfaces are uniformed. 
+
 [An answer from StackOverflow.](https://stackoverflow.com/questions/5256599/what-are-file-descriptors-explained-in-simple-terms)
 
 > In simple words, when you open a file, the operating system creates an entry to represent that file and store the information about that opened file. So if there are 100 files opened in your OS then there will be 100 entries in OS (somewhere in kernel). These entries are represented by integers like (...100, 101, 102....). This entry number is the file descriptor. So it is just an integer number that uniquely represents an opened file for the process. If your process opens 10 files then your Process table will have 10 entries for file descriptors.
 >
 > Similarly, when you open a network socket, it is also represented by an integer and it is called Socket Descriptor. I hope you understand.
 
-In Unix-like operating systems, such as RISC, file descriptor 0 is input, file descriptor 1 is output and file descriptor 2 is for error.
+In Unix-like operating systems, such as RISC, file descriptor 0 is input, file descriptor 1 is output and file descriptor 2 is for error. The file descriptor interface is an abstraction of files, pipes and devices. 
+
+**N.B.** Operating systems set the same name of file descriptors in different processes. As an illustration, there are several file descriptors with the name of 0, but there are in fact different files. 
 
 ## Notes of Every Lectures
 
 ### Lecture 1
 
+#### I/O and File Descriptors
 
+- Child process will keep the file descriptor table of its parents. The system call `exec(...)` replaces the calling process(the caller's) memory but preserves it file table. 
 
-1, Code examples 
+- Although `fork()` copies the file descriptor table, the offset is shared between parent and child  when reading  from or writing to a file. 
 
-(1) `copy.c`. Note that the file descriptors are different in `copy.c` so that the content could be copied from one file to another. 
-
-```c
-// copy.c: copy input to output.
-
-#include "kernel/types.h"
-#include "user/user.h"
-int
-main()
-{
-  char buf[64];
-  while(1){
-    int n = read(0, buf, sizeof(buf));  // Read from a file with file descriptor 0.
-    if(n <= 0)
-      break;
-    write(1, buf, n); // Write content from buf to a file whit file descriptor 1.
+  ```c
+  if(fork() == 0) { // When fork() returns 0, it indicates that it is a child process.
+  	write(1, "hello ", 6);
+  	exit(0);  
+  } else {  // A parent process.
+      wait(0);
+      write(1, "world\n", 6);
   }
-  exit(0);
-}
-```
+  ```
 
-```c
-// Here are system calls called by 'copy.c': read(...) and write(...)
-int read(int fd, char *buf, int n);
-int write(int fd, char *buf, int n);
-```
+  The final output is "Hello world", which indicates that a parent process and its child write into a same file (because they share the same file descriptor table) and the same offset. 
 
-(2) `echo.c`
-
-Why does the `i` start from 1 in the following `for` loop?
-
-Because the first element in `argc[]` is the name of the executed file, namely `echo.c`. (It is definitely necessary to learn C comprehensively.)
-
-```c
-#include "kernel/types.h"
-#include "user/user.h"
-int
-main(int argc, char *argv[])
-{
-  int i;
-
-  for(i = 1; i < argc; i++){
-    write(1, argv[i], strlen(argv[i]));
-    if(i + 1 < argc){
-      write(1, " ", 1);
-    } else {
-      write(1, "\n", 1);
-    }
-  }
-  exit(0);
-}
-```
-
-
-
-(3) `open.c`
-
-`O_WRONLY | O_CREATE` is from `kernel/fcntl.h`.
-
-```c
-// open.c: create a file, write to it.
-#include "kernel/types.h"
-#include "user/user.h"
-#include "kernel/fcntl.h"
-
-int
-main()
-{
-  int fd = open("output.txt", O_WRONLY | O_CREATE);
-  write(fd, "ooo\n", 4);
-
-  exit(0);
-}
-```
-
-(4) `exec.c`
-
-Why is the system call `exec(...)` followed by `printf(...)` immediately without any condition? Does it execute all the time?
-
-Because the system call `exec(...)` will return only if there is an error.
-
-Apparently, ` printf("exec failed!\n");` will execute when it incurs an error in the system call `exec`.
-
-```c
-// exec.c: replace a process with an executable file
-#include "kernel/types.h"
-#include "user/user.h"
-
-int
-main()
-{
-  char *argv[] = { "echo", "this", "is", "echo", 0 };
-  exec("echo", argv);
-  printf("exec failed!\n");
-  
-  exit(0);
-}
-```
-
-
-
+  It is the same with a system call named `dup(...)`.
