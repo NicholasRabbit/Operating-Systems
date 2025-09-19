@@ -10,7 +10,7 @@ The Objectives of 6.S081
 1. Learning pointers in C.
 2. Read the [guidance](https://pdos.csail.mit.edu/6.828/2021/labs/guidance.html) before you do any lab.
 3. [Schedule](https://pdos.csail.mit.edu/6.828/2021/schedule.html)
-4. The textbook should be read along with the source code of xv6.
+4. The textbook should be read along with [the source code of xv6](https://github.com/mit-pdos/xv6-riscv).
 5. "&c" means "etc" or "et cetera".
 
 ### 1, What are operating systems? 
@@ -94,9 +94,9 @@ In Unix-like operating systems, such as RISC, file descriptor 0 is input, file d
 
 **N.B.** Operating systems set the same name of file descriptors in different processes. As an illustration, there are several file descriptors with the name of 0, but there are in fact different files. 
 
-## Notes of Every Lectures
+## Notes of Chapters
 
-### Lecture 1
+### Chapter 1 
 
 #### I/O and File Descriptors
 
@@ -117,3 +117,15 @@ In Unix-like operating systems, such as RISC, file descriptor 0 is input, file d
   The final output is "Hello world", which indicates that a parent process and its child write into a same file (because they share the same file descriptor table) and the same offset. 
 
   It is the same with a system call named `dup(...)`.
+
+#### Pipe
+
+- What is a pipe in a operating system?
+
+  Pipe is a small kernel buffer exposed to two or more processes; it is used for the communication of these processes. As an illustration, `ls foo | grep test` creates a pipe between `ls` and `grep`. 
+
+- In the textbook, why would the `wc`(word count)  never stop when the file descriptors referring to the end of a pipe open?
+
+  The `read` on the other side of pipe will wait for new input if the `write` end of a pipe is open; the `read` will return 0 indicating the termination of a process when the `write` end close. Apparently, it is important for a child process to close the write end before executing `wc`.
+
+  
