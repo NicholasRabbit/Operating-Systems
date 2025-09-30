@@ -92,23 +92,25 @@ As an illustration, when the *shell* is running, a user input `echo foo` in the 
 
 *From the textbook of 6.S081:*
 
-A file descriptor is a small integer represent a kernel-managed object that a process may read from or write to. Attention should be paid here is that the object is not only normal files but also is a directory, a device or a pipe; they are all represented by file descriptors. The reason why we refer to all of them with descriptors is that it abstracts away from the difference between files, devices, and devices so that their interfaces are uniformed. 
+A file descriptor is a small integer represent a kernel-managed object that a process may read from or write to. Attention should be paid here is that the object is not only normal files but also is a directory, a device or a pipe; they are all represented by file descriptors. The reason why we refer to all of them with descriptors is that it abstracts away from the difference between files, devices, and devices so that their interfaces are uniformed. In fact, all the data are bytes wherever it is from to a file, a device or a pipe; commands are represented by bytes. Reading and write bytes from and to file descriptors are applicable to all of them. 
 
-[An answer from StackOverflow.](https://stackoverflow.com/questions/5256599/what-are-file-descriptors-explained-in-simple-terms)
 
-> In simple words, when you open a file, the operating system creates an entry to represent that file and store the information about that opened file. So if there are 100 files opened in your OS then there will be 100 entries in OS (somewhere in kernel). These entries are represented by integers like (...100, 101, 102....). This entry number is the file descriptor. So it is just an integer number that uniquely represents an opened file for the process. If your process opens 10 files then your Process table will have 10 entries for file descriptors.
->
-> Similarly, when you open a network socket, it is also represented by an integer and it is called Socket Descriptor. I hope you understand.
 
 In Unix-like operating systems, such as RISC, a process reads from file descriptor 0(input), writes to file descriptor 1(output), and writes error messages to file descriptor 2. The file descriptor interface is an abstraction of files, pipes and devices. 
 
+[An answer from StackOverflow.](https://stackoverflow.com/questions/5256599/what-are-file-descriptors-explained-in-simple-terms)
+
 **N.B.** Operating systems set the same name of file descriptors in different processes. As an illustration, there are several file descriptors with the name of 0, but there are in different files. 
+
+##### How a process obtain a file descriptor?
+
+A process can obtain a file descriptor by opening a file, directory, device, creating a pipe or just duplicating an existing file descriptor(`dup(int fd)`).
 
 ##### Notes of I/O and File Descriptors
 
 - Child process will keep the file descriptor table of its parents. The system call `exec(...)` replaces the calling process(the caller's) memory but preserves it file table. 
 
-- There is a file descriptor table maintained by a kernel in each process. File descriptors and their mapping addresses are stored in the table. (I guess and it is to be verified.)
+- There is a file descriptor table maintained by a kernel in each process. File descriptors and their mapping addresses are stored in the table. Perhaps there is an array `int fd[3]` which represents a file descriptor with its indices, 0, 1 and 2, as read, write and error file. (I guess and it is to be verified.)
 
 - Although `fork()` copies the file descriptor table, the offset is shared between parent and child  when reading  from or writing to a file. 
 
@@ -125,12 +127,74 @@ In Unix-like operating systems, such as RISC, a process reads from file descript
   The final output is "Hello world", which indicates that a parent process and its child write into a same file (because they share the same file descriptor table) and the same offset. 
 
   It is the same with a system call named `dup(...)`. 
+  
+- **What is I/O redirection?**
+
+  When a command is executed, such as `cat`, the output of it is normally on the terminal. Whereas, if we redirect the output to a file named `redir.text` , we can use `cat > redir.txt` to redirect the output to `redir.txt`. A process of `cat` will use system calls such as`open(), dup(), close(), pipe()` to implement the I/O redirection. `open()` will open a file `redir.txt` and return its file descriptor to the process.
+
+  That's why `fork()` and `exec()` are separate calls; between them, the child's I/O can be redirected without interrupting the main process.
+
+  *Examples:*
+
+  ```shell
+  cat < input.txt  # redirect input 
+  cat > output.txt # redirect output
+  cat 2> error.txt # redirect error to error.txt
+  # redirect standard output and error to out_and_error.txt
+  cat foo.txt > out_and_error.log 2>&1 
+  ```
+
+  An example of redirection in the textbook of 6.S081
+
+  ```c
+  
+  #include "kernel/types.h"
+  #include "user/user.h"
+  #include "kernel/fcntl.h"
+  
+  // redirect.c: run a command with output redirected=
+  int main()
+  {
+    int pid;
+    pid = fork();
+    if(pid == 0){
+      // In child process, the default output(terminal) which is represented by file
+      //descriptor 1, is closed.
+      close(1);  
+      // Open "output.ext" and "O_WRONLY|O_CREATE" indicates it is written only if 
+      // the file doesn't exist then create one. 
+      // By convention, since file descriptor 1 has been closeed previously, open(...)
+      // will return the smallest available file descriptor, namely this 1. 
+      // There is no need to receive the return value explicitly since there are only
+      // 0,1,and 2 descriptors in a process. This child process will write to file
+      // descriptor 1 by default. 
+      open("output.txt", O_WRONLY|O_CREATE);
+  
+      char *argv[] = { "echo", "this", "is", "redirected", "echo", 0 };
+      exec("echo", argv);
+      printf("exec failed!\n");
+      exit(1);
+    } else {
+      wait((int *) 0);
+    }
+  
+  exit(0);
+  }
+  ```
+  
+  
 
 #### Pipe
 
 - What is a pipe in a operating system?
 
   Pipe is a small kernel buffer exposed to two or more processes; it is used for the communication of these processes. As an illustration, `ls foo | grep test` creates a pipe between `ls` and `grep`. 
+
+  Note that a pipe is a file descriptor, too. In `int p[2]; int pipe(p);` the function `pipe(p)`  creates a new pipe and put another file descriptors, read and write, into the pipe.
+
+- What are pipes used for?
+
+  Processes communicate through pipes. 
 
 - In the textbook, why would the `wc`(word count)  never stop when the file descriptors referring to the end of a pipe open?
 
