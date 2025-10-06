@@ -130,7 +130,7 @@ A process can obtain a file descriptor by opening a file, directory, device, cre
   
 - **What is I/O redirection?**
 
-  When a command is executed, such as `cat`, the output of it is normally on the terminal. Whereas, if we redirect the output to a file named `redir.text` , we can use `cat > redir.txt` to redirect the output to `redir.txt`. A process of `cat` will use system calls such as`open(), dup(), close(), pipe()` to implement the I/O redirection. `open()` will open a file `redir.txt` and return its file descriptor to the process.
+  When a command is executed, such as `cat`, the output of it is normally on the terminal(CLI). Whereas, if we output to a file named `redir.text` ,  it is I/O redirection and we can use `cat > redir.txt` to redirect the output to `redir.txt`. A process of `cat` will use system calls such as`open(), dup(), close(), pipe()` to implement the I/O redirection. `open()` will open a file `redir.txt` and return its file descriptor to the process.
 
   That's why `fork()` and `exec()` are separate calls; between them, the child's I/O can be redirected without interrupting the main process.
 
@@ -160,15 +160,17 @@ A process can obtain a file descriptor by opening a file, directory, device, cre
     if(pid == 0){
       // In child process, the default output(terminal) which is represented by file
       //descriptor 1, is closed.
-      close(1);  
+      close(1); 
+        
       // Open "output.ext" and "O_WRONLY|O_CREATE" indicates it is written only if 
       // the file doesn't exist then create one. 
-      // By convention, since file descriptor 1 has been closeed previously, open(...)
-      // will return the smallest available file descriptor, namely this 1. 
+      // By convention, since file descriptor 1 has been closed previously, open(...)
+      // will return the smallest available file descriptor, namely this 1. and assign
+      // it to "output.txt" instead of a terminal. 
       // There is no need to receive the return value explicitly since there are only
       // 0,1,and 2 descriptors in a process. This child process will write to file
       // descriptor 1 by default. 
-      open("output.txt", O_WRONLY|O_CREATE);
+      open("output.txt", O_WRONLY|O_CREATE); 
   
       char *argv[] = { "echo", "this", "is", "redirected", "echo", 0 };
       exec("echo", argv);
@@ -186,6 +188,8 @@ A process can obtain a file descriptor by opening a file, directory, device, cre
 
 #### Pipe
 
+##### Notes of pipe.
+
 - What is a pipe in a operating system?
 
   Pipe is a small kernel buffer exposed to two or more processes; it is used for the communication of these processes. As an illustration, `ls foo | grep test` creates a pipe between `ls` and `grep`. 
@@ -196,9 +200,9 @@ A process can obtain a file descriptor by opening a file, directory, device, cre
 
   Processes communicate through pipes. 
 
-- In the textbook, why would the `wc`(word count)  never stop when the file descriptors referring to the end of a pipe open?
+- In the textbook, why would the `wc`(word count)  never stop when the file descriptors referring to the write end of a pipe open?
 
-  The `read` on the other side of pipe will wait for new input if the `write` end of a pipe is open; the `read` will return 0 indicating the termination of a process when the `write` end close. Apparently, it is important for a child process to close the write end before executing `wc`.
+  The `read` on the read side of pipe will wait for new input if the `write` end of a pipe is open; the `read` will return 0 indicating the termination of a process when the `write` end close. Apparently, it is important for a child process to close the write end before executing `wc`.
 
   
 
@@ -250,11 +254,16 @@ main()
     write(fds[1], "this is pipe2\n", 14); // There are 14 characters in total.
   } else {
     // Here is a parent process. 
-    n = read(fds[0], buf, sizeof(buf));
-    write(1, buf, n);
+    n = read(fds[0], buf, sizeof(buf)); // 1. Read from a pipe. 
+    write(1, buf, n);  // 2. Then, write to the file descriptor of parent process itself. 
   }
 
   exit(0);
 }
 ```
 
+##### Pipeline
+
+What is a pipeline?
+
+A pipeline is a combination of multiple processes which communicate by pipes. As an illustration,  `grep fork sh.c | wc -l`  is a pipeline. 

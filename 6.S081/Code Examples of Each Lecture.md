@@ -103,7 +103,9 @@ main()
 
 Note: `exec()` is normally run after a `fork()`, the former will discard all the data a child copied from its parent and replace it with an executable file. The child process will keep the its parents' file descriptor table.
 
-() 
+(5) `redirect.c`  
+
+See "Pipe" in Notes on Operating Systems
 
 ```c
 #include "kernel/types.h"

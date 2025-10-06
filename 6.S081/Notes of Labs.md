@@ -95,8 +95,8 @@ make CPUS=1 qemu
 To check the console of `QEMU`. There is nothing displayed in the CLI. You should input like `info mem` to check the memory.  After running the `QEMU`, you can execute the following commands. 
 
 ```shell
-#Step 1: press Ctrl and a at the same time and release them, then press c.
-Ctrl + a, c 
+#Step 1: press Ctrl and 'A' at the same time and release them, then press 'C'.
+Ctrl + A, C 
 #Step 2
 (qemu) info mem # This command can only execute after the preceding command. 
 ```
