@@ -37,6 +37,8 @@ System calls are interfaces offered by the kernel of an operating system for app
 
 When a process needs to invoke a kernel service, it actually invokes a system call. When a system call are being called, they jump into the kernel to execute. The kernel retrieves the arguments in the system call and do its job. The process alternates between user space and kernel space. 
 
+Note that system calls are written in C so that they look like function calls, but they are not. 
+
 ##### 1.4 What is RISC-V?
 
 RISC-V, which is an acronym of Reduced Instruction Set Computer-Five,  is an open-source instruction set architecture. 
@@ -264,6 +266,11 @@ main()
 
 ##### Pipeline
 
-What is a pipeline?
+**What is a pipeline?**
 
 A pipeline is a combination of multiple processes which communicate by pipes. As an illustration,  `grep fork sh.c | wc -l`  is a pipeline. 
+
+**How shell implements pipelines?** (Page 16,[textbook of 6.s081](.\Textbook\book-riscv-rev2.pdf)  )
+
+[An answer from ChatGPT](.\note-images\implements pipelines by shell.md).
+
