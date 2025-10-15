@@ -2,7 +2,9 @@
 
 #### Code examples 
 
-(1) `copy.c`. Note that the file descriptors are different in `copy.c` so that the content could be copied from one file to another. 
+##### copy.c
+
+ `copy.c`. Note that the file descriptors are different in `copy.c` so that the content could be copied from one file to another. 
 
 ```c
 // copy.c: copy input to output.
@@ -29,11 +31,13 @@ int read(int fd, char *buf, int n);
 int write(int fd, char *buf, int n);
 ```
 
-(2) `echo.c`
+##### echo.c
+
+`echo.c`
 
 Why does the `i` start from 1 in the following `for` loop?
 
-Because the first element `argc[0]` in `char *argc[]` is the name of the executed file, namely `echo.c`. The arguments which a user input in CLI start with index 1. (It is definitely necessary to learn C comprehensively.)
+Because the first element `argc[0]` in `char *argc[]` is the name of the file to be executed, namely `echo.c`. The arguments which a user input in CLI start with index 1. (It is definitely necessary to learn C comprehensively.)
 
 ```c
 #include "kernel/types.h"
@@ -42,7 +46,6 @@ int
 main(int argc, char *argv[])
 {
   int i;
-
   for(i = 1; i < argc; i++){
     write(1, argv[i], strlen(argv[i]));
     if(i + 1 < argc){

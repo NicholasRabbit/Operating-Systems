@@ -96,8 +96,6 @@ As an illustration, when the *shell* is running, a user input `echo foo` in the 
 
 A file descriptor is a small integer represent a kernel-managed object that a process may read from or write to. Attention should be paid here is that the object is not only normal files but also is a directory, a device or a pipe; they are all represented by file descriptors. The reason why we refer to all of them with descriptors is that it abstracts away from the difference between files, devices, and devices so that their interfaces are uniformed. In fact, all the data are bytes wherever it is from to a file, a device or a pipe; commands are represented by bytes. Reading and write bytes from and to file descriptors are applicable to all of them. 
 
-
-
 In Unix-like operating systems, such as RISC, a process reads from file descriptor 0(input), writes to file descriptor 1(output), and writes error messages to file descriptor 2. The file descriptor interface is an abstraction of files, pipes and devices. 
 
 [An answer from StackOverflow.](https://stackoverflow.com/questions/5256599/what-are-file-descriptors-explained-in-simple-terms)
@@ -186,13 +184,16 @@ A process can obtain a file descriptor by opening a file, directory, device, cre
   }
   ```
   
-  
+
+##### Others 
+
+- `copy(...)` doesn't care about the format of data. Whatever data is, it is just a sequence of byte in a computer system.
 
 #### Pipe
 
 ##### Notes of pipe.
 
-- What is a pipe in a operating system?
+- What is a pipe in an operating system?
 
   Pipe is a small kernel buffer exposed to two or more processes; it is used for the communication of these processes. As an illustration, `ls foo | grep test` creates a pipe between `ls` and `grep`. 
 
@@ -206,7 +207,21 @@ A process can obtain a file descriptor by opening a file, directory, device, cre
 
   The `read` on the read side of pipe will wait for new input if the `write` end of a pipe is open; the `read` will return 0 indicating the termination of a process when the `write` end close. Apparently, it is important for a child process to close the write end before executing `wc`.
 
-  
+- Pipes have [four advantages](.\note-images\four-advantages-of-pipes.md) over temporary files. As an illustration, in shell, pipes are better than temporary files. 
+
+  1. First, pipes automatically clean themselves up. Whereas, "shell" should carefully remove the temporary files.
+
+  2. Second, pipes can pass relentless streams of data since a process read from one end and another process process write in the other end. The size of data is infinite. In contrast, shell should allocate a file in a disk with limited size. 
+
+  3. Pipes allow one process read from one end and another process write to the other end simultaneously in a pipeline, while a process can't access a file until another process has finished. 
+
+  4. Pipes support blocking reads and writes.
+
+     When a process is reading from a pipe and there is no more data being written into the pipe, the reading process will block(wait) if the write end is not closed; no data will be lost. Similarly, if a process is writing into a pipe which has no more space because the reading process is not able to read quickly, the writing process will also block(wait). 
+
+     For a temporary file, since multiple processes can access it synchronously, blocking reads and writes should be handle manually by synchronisation code in programmes, which is not as efficient as pipes in a operating systems.
+
+     
 
 [Examples of pipes](https://pdos.csail.mit.edu/6.828/2021/lec/l-overview/pipe1.c)
 
@@ -256,7 +271,7 @@ main()
     write(fds[1], "this is pipe2\n", 14); // There are 14 characters in total.
   } else {
     // Here is a parent process. 
-    n = read(fds[0], buf, sizeof(buf)); // 1. Read from a pipe. 
+    n = read(fds[0], buf, sizeof(buf)); // 1. Read from a pipe, namely from fds[0]. 
     write(1, buf, n);  // 2. Then, write to the file descriptor of parent process itself. 
   }
 
