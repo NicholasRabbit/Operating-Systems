@@ -183,6 +183,18 @@ main(int ac, char **av)
 }
 ```
 
+#### 0, Tips of Labs
+
+(1) We can use `printf()` to print out integers as same as in C.
+
+```c
+// The main function in pingpong.c
+int main(){
+    int m = 2;
+    printf("test %d\n", m);
+}
+```
+
 
 
 #### 1, Lab 1
@@ -251,5 +263,5 @@ $
 
 ##### 1.2) pingpong
 
-**N.B.** The function `fork()` is in `./kernel/proc.c`
+
 

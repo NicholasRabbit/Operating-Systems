@@ -88,6 +88,12 @@ The original process and the new process are called *parent* and *child*, respec
 
 As an illustration, when the *shell* is running, a user input `echo foo` in the CLI. If *shell*  calls `exec()` directly to execute `echo`, the current *shell* will be replaced by the echo and it is killed, so there won't be any CLI any more. 
 
+**(3) The value of PID in a child process and its parent process**
+
+The child has its own PID; `fork()` returns both in a new child process and its parent process. In the new process(child process), `fork()` returns 0. Whereas, `fork()` returns the really PID of a child in its parent process. **N.B.** that the PID is 0  which is returned from `fork()` doesn't mean its real PID is 0 but it is just a return value from a `fork()` in a child process. 
+
+Note that the function in which a new child process in created by `fork()` is executed twice. One is called by the parent process and the other is called by the child process. 
+
 #### I/O and File Descriptors
 
 ##### What are file descriptors?
