@@ -219,7 +219,7 @@ A process can obtain a file descriptor by opening a file, directory, device, cre
 
      When a process is reading from a pipe and there is no more data being written into the pipe, the reading process will block(wait) if the write end is not closed; no data will be lost. Similarly, if a process is writing into a pipe which has no more space because the reading process is not able to read quickly, the writing process will also block(wait). 
 
-     For a temporary file, since multiple processes can access it synchronously, blocking reads and writes should be handle manually by synchronisation code in programmes, which is not as efficient as pipes in a operating systems.
+     For a temporary file, since multiple processes can access it synchronously, blocking reads and writes should be handle manually by synchronous code in programmes, which is not as efficient as pipes in a operating systems.
 
      
 
@@ -232,7 +232,7 @@ A process can obtain a file descriptor by opening a file, directory, device, cre
 #include "user/user.h"
 int main()
 {
-  // "fds" stands for "File descriptors". (Notes by me)
+  // "fds" stands for "File descriptors". (comments by me)
   int fds[2];  
   char buf[100];
   int n;
@@ -288,4 +288,27 @@ A pipeline is a combination of multiple processes which communicate by pipes. As
 **How shell implements pipelines?** (Page 16,[textbook of 6.s081](.\Textbook\book-riscv-rev2.pdf)  )
 
 [An answer from ChatGPT](.\note-images\implements pipelines by shell.md).
+
+##### File System
+
+**(1) File names and `inode`**
+
+```c
+#define T_DIR 1 // Directory
+#define T_FILE 2 // File
+#define T_DEVICE 3 // Device
+struct stat {
+int dev; // File system’s disk device
+uint ino; // Inode number
+short type; // Type of file
+short nlink; // Number of links to file
+uint64 size; // Size of file in bytes
+};
+```
+
+- A file itself can have multiple file names, which are called links, but only have one `inode`. Each `inode` is identified by a unique `inode` number. 
+
+- The `unlink(...)` system call removes a name from a file in file system. Note that it only removes one name. If a file hasn't any file names, the file's `inode` and its holding space in a disk is freed. 
+
+
 
