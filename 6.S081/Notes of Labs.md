@@ -263,5 +263,70 @@ $
 
 ##### 1.2) pingpong
 
+> Write a program that uses UNIX system calls to ''ping-pong'' a  byte between two processes over a pair of pipes, one for each  direction.  The parent should send a byte to the child;  the child should print "<pid>: received ping",  where <pid> is its process ID,  write the byte on the pipe to the parent,  and exit;  the parent should read the byte from the child,  print "<pid>: received pong",  and exit.  Your  solution should be in the file `user/pingpong.c`.  
 
+Some hints:  
+
+- Use `pipe` to create a pipe.    
+- Use `fork` to create a child.    
+- Use `read` to read from the pipe, and `write` to write to the pipe.    
+- Use `getpid` to find the process ID of the calling process.    
+- Add the program to `UPROGS` in Makefile.    
+- User programs on xv6 have a limited set of library    functions available to them. You can see the list in    `user/user.h`; the source (other than for system calls)    is in `user/ulib.c`, `user/printf.c`,    and `user/umalloc.c`.  
+
+(1) It asks us to create a pair of pipes, namely two pipes to communicate between a parent process and its child. One is used for a parent to write and its child to read and the other is used for the child to write bach the byte and the parent to read. We can refer to `pipe2.c` in the examples of Lecture 1 to know how to implement pipes connecting two process. 
+
+(2) Don't forget to write `wait(0)` in the parent process to wait for its child to input a byte to a pipe and to `exit(0)`. Or the parent will execute the `if(...)` statement simultaneously when it child hasn't written any bytes into a pipe yet. 
+
+A solution is as follows.
+
+```c
+#include "kernel/types.h"
+#include "user/user.h"
+
+int main(int argc, char *argv[])
+{
+	int pid, c_pid;
+	int fds[2];
+	int fds_b[2];
+	char buff[2];
+
+	// Note that a pair of pipes should be called outside the following
+	// "if...else" because they are shared by a child process and its parent. 
+	pipe(fds);
+	pipe(fds_b);
+
+	c_pid = fork();
+	if (c_pid == 0) {
+		// A child process reads a byte from a pipe and stores the data to "buff".
+		read(fds[0], buff, 1);
+		if (buff[0] == 'A') {
+			// If a child received "A" from its parent, it writes the "A" 
+			// into its file descriptor. Since the default output of a process 
+			// is a console, so the "A" will be printed on the CLI.
+			//write(1, buff, 1); // To test.
+
+			pid = getpid();
+			printf("%d: received ping\n", pid);
+
+			// The child should write "A" back the a pipe so that its parent can
+			// read from the pipe.
+			write(fds_b[1], "B", 1);
+			exit(0);
+		}
+		exit(1);
+	} else {
+		write(fds[1], "A", 1);
+		// Wait for a child process to exit.
+		wait(0);
+        
+		read(fds_b[0], buff, 1);   // To read a byte in a pipe from a child.
+		if (buff[0] == 'B') {    
+				pid = getpid();
+				printf("%d: received pong\n", pid);
+		}
+		exit(0);
+	}
+}
+```
 

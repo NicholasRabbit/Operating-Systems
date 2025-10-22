@@ -121,19 +121,30 @@ A process can obtain a file descriptor by opening a file, directory, device, cre
 - Although `fork()` copies the file descriptor table, the offset is shared between parent and child  when reading  from or writing to a file. 
 
   ```c
-  if(fork() == 0) { // When fork() returns 0, it indicates that it is a child process.
-  	write(1, "hello ", 6);
-  	exit(0);  
-  } else {  // A parent process.
+   else {  // A parent process.
       wait(0);
       write(1, "world\n", 6);
   }
   ```
-
-  The final output is "Hello world", which indicates that a parent process and its child write into a same file (because they share the same file descriptor table) and the same offset. 
-
-  It is the same with a system call named `dup(...)`. 
   
+  The final output is "Hello world", which indicates that a parent process and its child write into a same file (because they share the same file descriptor table) and the same offset. 
+  
+It is the same with a system call named `dup(...)`. 
+  
+- Note that `write(...)` outputs to a Console(CLI) by default in a process. 
+
+  ```c
+  int main(int argc, char *argv[]) 
+  {
+      if(fork() == 0) { 
+          write(1, "hello ", 6);  // Output "hello" on CLI. 
+          exit(0);  
+      }
+  }
+  ```
+
+  
+
 - **What is I/O redirection?**
 
   When a command is executed, such as `cat`, the output of it is normally on the terminal(CLI). Whereas, if we output to a file named `redir.text` ,  it is I/O redirection and we can use `cat > redir.txt` to redirect the output to `redir.txt`. A process of `cat` will use system calls such as`open(), dup(), close(), pipe()` to implement the I/O redirection. `open()` will open a file `redir.txt` and return its file descriptor to the process.
@@ -153,7 +164,6 @@ A process can obtain a file descriptor by opening a file, directory, device, cre
   An example of redirection in the textbook of 6.S081
 
   ```c
-  
   #include "kernel/types.h"
   #include "user/user.h"
   #include "kernel/fcntl.h"
@@ -229,7 +239,7 @@ A process can obtain a file descriptor by opening a file, directory, device, cre
 
      
 
-[Examples of pipes](https://pdos.csail.mit.edu/6.828/2021/lec/l-overview/pipe1.c)
+##### [Examples of pipes](https://pdos.csail.mit.edu/6.828/2021/lec/l-overview/pipe1.c)
 
 ```c
 // pipe1.c: communication over a pipe
@@ -277,8 +287,10 @@ main()
     write(fds[1], "this is pipe2\n", 14); // There are 14 characters in total.
   } else {
     // Here is a parent process. 
-    n = read(fds[0], buf, sizeof(buf)); // 1. Read from a pipe, namely from fds[0]. 
-    write(1, buf, n);  // 2. Then, write to the file descriptor of parent process itself. 
+    // 1. Read from a pipe, namely from fds[0]; store the data into "buf".
+    n = read(fds[0], buf, sizeof(buf)); 
+    // 2. Then, write the data in "buf" to the file descriptor of parent process itself. 
+    write(1, buf, n);  
   }
 
   exit(0);
