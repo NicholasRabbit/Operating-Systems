@@ -60,7 +60,7 @@ main(int argc, char *argv[])
 
 
 
-(3) `open.c`
+#####  `open.c`
 
 `O_WRONLY | O_CREATE` is from `kernel/fcntl.h`.
 
@@ -80,7 +80,7 @@ main()
 }
 ```
 
-(4) `exec.c`
+##### `exec.c`
 
 Why is the system call `exec(...)` followed by `printf(...)` immediately without any condition? Does it execute all the time?
 
@@ -106,7 +106,7 @@ main()
 
 Note: `exec()` is normally run after a `fork()`, the former will discard all the data a child copied from its parent and replace it with an executable file. The child process will keep the its parents' file descriptor table.
 
-(5) `redirect.c`  
+##### `redirect.c`  
 
 See "Pipe" in Notes on Operating Systems
 

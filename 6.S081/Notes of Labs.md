@@ -274,7 +274,7 @@ Some hints:
 - Add the program to `UPROGS` in Makefile.    
 - User programs on xv6 have a limited set of library    functions available to them. You can see the list in    `user/user.h`; the source (other than for system calls)    is in `user/ulib.c`, `user/printf.c`,    and `user/umalloc.c`.  
 
-(1) It asks us to create a pair of pipes, namely two pipes to communicate between a parent process and its child. One is used for a parent to write and its child to read and the other is used for the child to write bach the byte and the parent to read. We can refer to `pipe2.c` in the examples of Lecture 1 to know how to implement pipes connecting two process. 
+(1) It asks us to create a pair of pipes, namely two pipes to communicate between a parent process and its child process. One is used for a parent to write and its child to read and the other is used for the child to write back the byte and the parent to read. We can refer to `pipe2.c` in the examples of Lecture 1 to know how to implement pipes connecting two process. 
 
 (2) Don't forget to write `wait(0)` in the parent process to wait for its child to input a byte to a pipe and to `exit(0)`. Or the parent will execute the `if(...)` statement simultaneously when it child hasn't written any bytes into a pipe yet. 
 
@@ -329,4 +329,147 @@ int main(int argc, char *argv[])
 	}
 }
 ```
+
+##### 1.4) find
+
+*The Question*
+
+Write a simple version of the UNIX find program: find all the files  in a directory tree with a specific name.  Your solution  should be in the file `user/find.c`.   
+
+Some hints:  
+
+- Look at `user/ls.c` to see how to read directories.    
+- Use recursion to allow find to descend into sub-directories.    
+- Don't recurse into "." and "..".    
+- Changes to the file system persist across runs of qemu; to get a clean file system run `make clean` and then `make qemu`.    
+- You'll need to use C strings. Have a look at K&R (the C book), for example Section 5.5.    
+-  Note that == does not compare strings like in Python. Use strcmp() instead.    
+- Add the program to `UPROGS` in Makefile.  
+
+*Let's analyse.* 
+
+I added some extra comments. 
+
+`user/ls.c`
+
+```c
+#include "kernel/types.h"
+#include "kernel/stat.h"
+#include "user/user.h"
+#include "kernel/fs.h"
+#include "kernel/fcntl.h"
+
+char*
+fmtname(char *path)
+{
+  static char buf[DIRSIZ+1];
+  char *p;
+
+  // Find first character after last slash.
+  for(p=path+strlen(path); p >= path && *p != '/'; p--)
+    ;
+  p++;
+
+  // Return blank-padded name.
+  if(strlen(p) >= DIRSIZ)
+    return p;
+  // Move conent in a place to another in memory. See 'user/user.h.' and 'user/ulib.c'.
+  // "buf" is the destination.
+  memmove(buf, p, strlen(p));  
+  // Set the unused space in "buf" to ' '. See 'user/ulib.c'.
+  memset(buf+strlen(p), ' ', DIRSIZ-strlen(p)); 
+  return buf;
+}
+
+void
+ls(char *path)
+{
+  char buf[512], *p;
+  int fd;
+  struct dirent de;
+  struct stat st;
+    
+  // "fd" has already been assigned the return value even though the code of the 
+  // statement of the following "if..." is not executed. So "fd" can be used by the 
+  // rest code of this function. 
+  if((fd = open(path, O_RDONLY)) < 0){
+    fprintf(2, "ls: cannot open %s\n", path);
+    return;
+  }
+  // "fstat(...)" is a system call. 
+  if(fstat(fd, &st) < 0){
+    fprintf(2, "ls: cannot stat %s\n", path);
+    close(fd);
+    return;
+  }
+
+  switch(st.type){
+  case T_DEVICE:
+  case T_FILE:
+    printf("%s %d %d %d\n", fmtname(path), st.type, st.ino, (int) st.size);
+    break;
+          
+  // The code in the "case" below reads directories. 
+  case T_DIR:  
+    if(strlen(path) + 1 + DIRSIZ + 1 > sizeof buf){
+      printf("ls: path too long\n");
+      break;
+    }
+    strcpy(buf, path);
+          
+    // Copy the value of pointer in "buf" to "p".
+    // Move the char pointer to the end of the name of the path.
+    p = buf+strlen(buf); 
+    *p++ = '/';  // Then add a forward slash '/' after the name. 
+          
+    /*
+    * When reading a directory, a process will read all the files in this directory one
+    * by one, therefore, the "while" is being executed as many as the number of files.
+    */
+    while(read(fd, &de, sizeof(de)) == sizeof(de)){
+      if(de.inum == 0)
+        continue;
+        
+      // The `memmove(...)` function assigns the name of a file to "p" from which
+      // "buf" has the same name, therefor, "p" and "buf" are pointers deferencing a
+      // same place. I have verified that by printing the "buf" before and after it and 
+      // running 'qemu' again.
+      printf("buff before move: %s\n", fmtname(buf)); // Verifying code added by me.
+      memmove(p, de.name, DIRSIZ);
+      p[DIRSIZ] = 0;
+      printf("buff after move: %s\n", fmtname(buf)); // Verifying code added by me.
+      
+   
+      if(stat(buf, &st) < 0){
+        printf("ls: cannot stat %s\n", buf);
+        continue;
+      }
+      printf("%s %d %d %d\n", fmtname(buf), st.type, st.ino, (int) st.size);
+    }
+    break;
+  }
+  close(fd);
+}
+
+int
+main(int argc, char *argv[])
+{
+  int i;
+
+  if(argc < 2){
+    ls(".");
+    exit(0);
+  }
+  for(i=1; i<argc; i++)
+    ls(argv[i]);
+  exit(0);
+}
+
+```
+
+
+
+(1) A function named `stat(...)` is in `user/ulib.c` and `strcmp(...)` for comparing strings is also in it.
+
+
 

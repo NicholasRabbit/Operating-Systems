@@ -90,9 +90,9 @@ As an illustration, when the *shell* is running, a user input `echo foo` in the 
 
 **(3) The value of PID in a child process and its parent process**
 
-The child has its own PID; `fork()` returns both in a new child process and its parent process. In the new process(child process), `fork()` returns 0. Whereas, `fork()` returns the really PID of a child in its parent process. **N.B.** that the PID is 0  which is returned from `fork()` doesn't mean its real PID is 0 but it is just a return value from a `fork()` in a child process. 
+The child has its own unique PID, but not 0; `fork()` returns both in a new child process and its parent process. In the new process(child process), `fork()` returns 0. Whereas, `fork()` returns the really PID of a child in its parent process. **N.B.** that the PID is 0  which is returned from `fork()` doesn't mean that its real PID is 0 but it is just a return value from a `fork()` in a child process. 
 
-Note that the function in which a new child process in created by `fork()` is executed twice. One is called by the parent process and the other is called by the child process. 
+Note, as aforementioned,  `fork()` returns both in the original and new processes.  
 
 #### I/O and File Descriptors
 
@@ -106,7 +106,7 @@ In Unix-like operating systems, such as RISC, a process reads from file descript
 
 [An answer from StackOverflow.](https://stackoverflow.com/questions/5256599/what-are-file-descriptors-explained-in-simple-terms)
 
-**N.B.** Operating systems set the same name of file descriptors in different processes. As an illustration, there are several file descriptors with the name of 0, but there are in different files. 
+**N.B.** Operating systems set the same name of file descriptors in different processes. As an illustration, there are several file descriptors with the name of 0, but there are different files. 
 
 ##### How a process obtain a file descriptor?
 
@@ -129,8 +129,9 @@ A process can obtain a file descriptor by opening a file, directory, device, cre
   
   The final output is "Hello world", which indicates that a parent process and its child write into a same file (because they share the same file descriptor table) and the same offset. 
   
+
 It is the same with a system call named `dup(...)`. 
-  
+
 - Note that `write(...)` outputs to a Console(CLI) by default in a process. 
 
   ```c
@@ -207,13 +208,13 @@ It is the same with a system call named `dup(...)`.
 
 #### Pipe
 
-##### Notes of pipe.
+##### Notes of pipe
 
 - What is a pipe in an operating system?
 
   Pipe is a small kernel buffer exposed to two or more processes; it is used for the communication of these processes. As an illustration, `ls foo | grep test` creates a pipe between `ls` and `grep`. 
 
-  Note that a pipe is a file descriptor, too. In `int p[2]; int pipe(p);` the function `pipe(p)`  creates a new pipe and put another file descriptors, read and write, into the pipe.
+  Note that a pipe is a file descriptor, too. In `int p[2]; int pipe(p);` the function `pipe(p)`  creates a new pipe and put another file descriptors, namely read and write, into the pipe.
 
 - What are pipes used for?
 
@@ -299,11 +300,11 @@ main()
 
 ##### Pipeline
 
-**What is a pipeline?**
+What is a pipeline?
 
 A pipeline is a combination of multiple processes which communicate by pipes. As an illustration,  `grep fork sh.c | wc -l`  is a pipeline. 
 
-**How shell implements pipelines?** (Page 16,[textbook of 6.s081](.\Textbook\book-riscv-rev2.pdf)  )
+How shell implements pipelines? (Page 16,[textbook of 6.s081](.\Textbook\book-riscv-rev2.pdf)  )
 
 [An answer from ChatGPT](.\note-images\implements pipelines by shell.md).
 
@@ -316,11 +317,11 @@ A pipeline is a combination of multiple processes which communicate by pipes. As
 #define T_FILE 2 // File
 #define T_DEVICE 3 // Device
 struct stat {
-int dev; // File system’s disk device
-uint ino; // Inode number
-short type; // Type of file
-short nlink; // Number of links to file
-uint64 size; // Size of file in bytes
+    int dev; // File system’s disk device
+    uint ino; // Inode number
+    short type; // Type of file
+    short nlink; // Number of links to file
+    uint64 size; // Size of file in bytes
 };
 ```
 
