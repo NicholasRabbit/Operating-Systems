@@ -348,7 +348,7 @@ Some hints:
 
 *Let's analyse.* 
 
-I added some extra comments. 
+I added some extra comments to the original code. 
 
 `user/ls.c`
 
@@ -362,10 +362,12 @@ I added some extra comments.
 char*
 fmtname(char *path)
 {
-  static char buf[DIRSIZ+1];
+  // "DIRSIZ" is used to align the names of files and directories.
+  static char buf[DIRSIZ+1];  
   char *p;
 
-  // Find first character after last slash.
+  // Find first character after last slash. 
+  // It abstracts the last name of a file of a path, for examle, "foo" from "/user/foo".
   for(p=path+strlen(path); p >= path && *p != '/'; p--)
     ;
   p++;
@@ -404,7 +406,6 @@ ls(char *path)
   }
 
   switch(st.type){
-  case T_DEVICE:
   case T_FILE:
     printf("%s %d %d %d\n", fmtname(path), st.type, st.ino, (int) st.size);
     break;
@@ -420,7 +421,9 @@ ls(char *path)
     // Copy the value of pointer in "buf" to "p".
     // Move the char pointer to the end of the name of the path.
     p = buf+strlen(buf); 
-    *p++ = '/';  // Then add a forward slash '/' after the name. 
+    // Then add a forward slash '/' after the name and now "p" deferences 
+    // the byte after '/'.
+    *p++ = '/'; 
           
     /*
     * When reading a directory, a process will read all the files in this directory one
@@ -430,13 +433,14 @@ ls(char *path)
       if(de.inum == 0)
         continue;
         
-      // The `memmove(...)` function assigns the name of a file to "p" from which
-      // "buf" has the same name, therefor, "p" and "buf" are pointers deferencing a
-      // same place. I have verified that by printing the "buf" before and after it and 
-      // running 'qemu' again.
+      /*
+      * The `memmove(...)` function assigns the name of a file to "p" so that the return
+      * value of "fmtname(buf)" has the same name, therefore, "p" and "buf" are pointers 
+      * deferencing the same place. I have verified that by printing the "buf" before and 
+      * after it and running 'qemu' again. */ 
       printf("buff before move: %s\n", fmtname(buf)); // Verifying code added by me.
       memmove(p, de.name, DIRSIZ);
-      p[DIRSIZ] = 0;
+      p[DIRSIZ] = 0;   // 0 is "NULL" indicating the end of a string.
       printf("buff after move: %s\n", fmtname(buf)); // Verifying code added by me.
       
    
@@ -444,6 +448,7 @@ ls(char *path)
         printf("ls: cannot stat %s\n", buf);
         continue;
       }
+      // Note that "buf" is the full name of the path. 
       printf("%s %d %d %d\n", fmtname(buf), st.type, st.ino, (int) st.size);
     }
     break;
@@ -471,5 +476,8 @@ main(int argc, char *argv[])
 
 (1) A function named `stat(...)` is in `user/ulib.c` and `strcmp(...)` for comparing strings is also in it.
 
+(2) N.B. the return value of `strcmp(...)` is not 0 when two strings are not identical, therefore, if we make it the condition of a `if(...)` we should add ``!` to `if(!strcmp(...))` to converse it. 
 
+(3) `read(fd, &de, sizeof(de))` also reads `.` and `..` in in a directory. 
 
+(4) **N.B. It is to find all the files with a specific name, not directories.** Sadly, I hadn't read the question thoroughly so that I wasted much time on searching for directories and files. Whereas, I realised that and modified the code.  Finally, I finished this laboratory.
