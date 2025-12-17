@@ -329,5 +329,11 @@ struct stat {
 
 - The `unlink(...)` system call removes a name from a file in file system. Note that it only removes one name. If a file hasn't any file names, the file's `inode` and its holding space in a disk is freed. 
 
+**(2) root**
 
+The `root` of all directories is `/`, not `/root/`.
+
+**(3) Miscellaneous**
+
+`mknod` creates a new device file. 
 

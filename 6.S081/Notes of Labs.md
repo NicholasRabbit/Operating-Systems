@@ -1,4 +1,4 @@
-### 1, Building Environment for labs of 6.S081
+### 1, Building Environment for the labs of 6.S081
 
 1) Install Ubuntu 20.04 on WSL or VM. 
     The version must be 20.04. 
@@ -480,4 +480,4 @@ main(int argc, char *argv[])
 
 (3) `read(fd, &de, sizeof(de))` also reads `.` and `..` in in a directory. 
 
-(4) **N.B. It is to find all the files with a specific name, not directories.** Sadly, I hadn't read the question thoroughly so that I wasted much time on searching for directories and files. Whereas, I realised that and modified the code.  Finally, I finished this laboratory.
+(4) **N.B. It is to find all the files with a specific name, not directories.** Sadly, I hadn't read the question thoroughly so that I wasted much time on searching for both directories and files. Whereas, I realised that I was wrong and modified the code.  Finally, I finished this laboratory.
