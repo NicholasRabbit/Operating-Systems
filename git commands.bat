@@ -1,5 +1,7 @@
 @ECHO OFF
 
+git pull
+
 git status
 
 git add --all

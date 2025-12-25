@@ -1,5 +1,7 @@
 ### 1, Building Environment for the labs of 6.S081
 
+#### 1.1 Install 
+
 1) Install Ubuntu 20.04 on WSL or VM. 
     The version must be 20.04. 
 
@@ -56,6 +58,20 @@ sudo apt-get install qemu-system-misc=1:4.2-3ubuntu6
 ```
 
 [A guidance from bilibili](./note-images\building env of the labs of 6-S081.txt) (it has not been verified).
+
+#### 1.2 errors
+
+(1) When running `./grade-lab-util  xxx`, there is an error: `/usr/bin/env: ‘python’: No such file or directory`
+
+Solution: 
+
+- Verify if Python is installed by running `python3 --version` in the terminal.
+
+- Locate the Python 3 installation path by running `whereis python3`.
+
+- Create a symbolic link to map `python` to `python3` using the command: 
+
+- `sudo ln -s /usr/bin/python3 /usr/bin/python`.
 
 ### 2, Start  and quit xv6
 
