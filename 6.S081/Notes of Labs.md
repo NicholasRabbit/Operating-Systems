@@ -57,7 +57,7 @@ sudo apt-get install qemu-system-misc=1:4.2-3ubuntu6
 
 [A guidance from bilibili](./note-images\building env of the labs of 6-S081.txt) (it has not been verified).
 
-### 2, Start Riscv 6
+### 2, Start  and quit xv6
 
 1) Check if all the tools needed are installed.
 
@@ -101,7 +101,7 @@ Ctrl + A, C
 (qemu) info mem # This command can only execute after the preceding command. 
 ```
 
-**Exit qemu**
+**Exit xv6 of the qemu type**
 
 ```shell
 Ctrl + A 
@@ -195,7 +195,13 @@ int main(){
 }
 ```
 
+(2) In the root directory of `/xv6-labs-2020/` , switch to the `until` branch.
 
+```shell
+git checkout util
+```
+
+(3) There is no `ps` command in xv6, but we can use `Ctrl + P` instead. 
 
 #### 1, Lab 1
 
@@ -203,13 +209,7 @@ Note: `fork(...)` is in `kernel/proc.c`
 
 ##### 1.1) sleep
 
-a. In the root directory of `/xv6-labs-2020/` , switch to the `until` branch.
-
-```shell
-git checkout util
-```
-
-b. Create the file named `sleep.c` in `user/` and write the code. 
+a. Create the file named `sleep.c` in `user/` and write the code. 
 
 ```c
 #include "kernel/types.h"
@@ -234,7 +234,7 @@ int main(int argc, char* argv[])
 
 
 
-c. Add the following code to `Makefile`
+b. Add the following code to `Makefile`
 
 `/xv6-labs-2020/Makefile`
 
@@ -245,13 +245,13 @@ UPROGS=\
 	$U/_sleep\
 ```
 
-d. Run `QEMU` 
+c. Run `QEMU` 
 
 ```SHELL
 make CPUS=1 qemu / make qemu
 ```
 
-e. Input `sleep 20` to test if the `sleep(...)` is called. If the programme is correct, there will be a pause before the next `$` appears. N.B. one tick clock is not necessarily equivalent to a second. 
+d. Input `sleep 20` to test if the `sleep(...)` is called. If the programme is correct, there will be a pause before the next `$` appears. N.B. one tick clock is not necessarily equivalent to a second. 
 
 ```txt
 $ sleep 20
@@ -272,11 +272,11 @@ Some hints:
 - Use `read` to read from the pipe, and `write` to write to the pipe.    
 - Use `getpid` to find the process ID of the calling process.    
 - Add the program to `UPROGS` in Makefile.    
-- User programs on xv6 have a limited set of library    functions available to them. You can see the list in    `user/user.h`; the source (other than for system calls)    is in `user/ulib.c`, `user/printf.c`,    and `user/umalloc.c`.  
+- User programs on xv6 have a limited set of library functions available to them. You can see the list in    `user/user.h`; the source (other than for system calls)    is in `user/ulib.c`, `user/printf.c`,    and `user/umalloc.c`.  
 
 (1) It asks us to create a pair of pipes, namely two pipes to communicate between a parent process and its child process. One is used for a parent to write and its child to read and the other is used for the child to write back the byte and the parent to read. We can refer to `pipe2.c` in the examples of Lecture 1 to know how to implement pipes connecting two process. 
 
-(2) Don't forget to write `wait(0)` in the parent process to wait for its child to input a byte to a pipe and to `exit(0)`. Or the parent will execute the `if(...)` statement simultaneously when it child hasn't written any bytes into a pipe yet. 
+(2) Don't forget to write `wait(0)` in the parent process to wait for its child to input a byte to a pipe and to `exit(0)`. Or the parent will execute the `if(...)` statement simultaneously when its child hasn't written any bytes into a pipe yet. 
 
 A solution is as follows.
 
@@ -304,7 +304,7 @@ int main(int argc, char *argv[])
 			// If a child received "A" from its parent, it writes the "A" 
 			// into its file descriptor. Since the default output of a process 
 			// is a console, so the "A" will be printed on the CLI.
-			//write(1, buff, 1); // To test.
+			//write(1, buff, 1); // Printing "A" on the CLI.
 
 			pid = getpid();
 			printf("%d: received ping\n", pid);
@@ -329,6 +329,22 @@ int main(int argc, char *argv[])
 	}
 }
 ```
+
+##### 1.3) primes
+
+Some hints:  
+
+- It's simplest to directly write 32-bit (4-byte) `int`s to the pipes, rather than using formatted ASCII I/O.     
+
+**Elaboration of Some Hints:**
+
+What is "formatted ASCII I/O"?
+
+It refers to the characters in the ASCII table, while "32-bit (4-byte) `int`s" means the decimal or hexadecimal value represented by 4-byte integers.
+
+
+
+
 
 ##### 1.4) find
 

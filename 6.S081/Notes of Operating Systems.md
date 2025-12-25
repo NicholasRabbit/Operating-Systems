@@ -68,6 +68,8 @@ RISC-V, which is an acronym of Reduced Instruction Set Computer-Five,  is an ope
 
 #### Processes and memory
 
+##### Process
+
 **(1) What is a Process?** 
 
 Each running programme, which is called a process, has memory containing **instructions, data and a stack.**  
@@ -88,11 +90,32 @@ The original process and the new process are called *parent* and *child*, respec
 
 As an illustration, when the *shell* is running, a user input `echo foo` in the CLI. If *shell*  calls `exec()` directly to execute `echo`, the current *shell* will be replaced by the echo and it is killed, so there won't be any CLI any more. 
 
-**(3) The value of PID in a child process and its parent process**
+##### PID
 
-The child has its own unique PID, but not 0; `fork()` returns both in a new child process and its parent process. In the new process(child process), `fork()` returns 0. Whereas, `fork()` returns the really PID of a child in its parent process. **N.B.** that the PID is 0  which is returned from `fork()` doesn't mean that its real PID is 0 but it is just a return value from a `fork()` in a child process. 
+**Why are the value of PID in a child process and its parent process different?**
+
+The child has its own unique PID, but not 0; `fork()` returns both in a new child process and its parent process. In the new process(child process), `fork()` returns 0. Whereas, `fork()` returns the real PID of a child in its parent process. **N.B.** that the PID is 0  which is returned from `fork()` doesn't mean that its real PID is 0 but it is just a return value from a `fork()` in a child process. 
 
 Note, as aforementioned,  `fork()` returns both in the original and new processes.  
+
+```c
+int pid = fork();
+if(pid > 0){
+    printf("parent: child=%d\n", pid);
+    pid = wait((int *) 0);
+    printf("child %d is done\n", pid);
+} else if(pid == 0){
+    // When pid is 0, it is in a child process.
+    printf("child: exiting\n");
+    exit(0);
+} else {
+	printf("fork error\n");
+}
+```
+
+##### wait
+
+If a parent have multiple child processes, one `wait(...)` only waits for one of them. In order to wait all child processes, a parent process must have the same number of `wait(...)` .
 
 #### I/O and File Descriptors
 
@@ -106,7 +129,7 @@ In Unix-like operating systems, such as RISC, a process reads from file descript
 
 [An answer from StackOverflow.](https://stackoverflow.com/questions/5256599/what-are-file-descriptors-explained-in-simple-terms)
 
-**N.B.** Operating systems set the same name of file descriptors in different processes. As an illustration, there are several file descriptors with the name of 0, but there are different files. 
+**N.B.** Operating systems set the same name of file descriptors in different processes. As an illustration, there are several file descriptors with the name of 0,  but they are different files and isolated in different processes.
 
 ##### How a process obtain a file descriptor?
 
@@ -179,7 +202,7 @@ It is the same with a system call named `dup(...)`.
       //descriptor 1, is closed.
       close(1); 
         
-      // Open "output.ext" and "O_WRONLY|O_CREATE" indicates it is written only if 
+      // Open "output.txt" and "O_WRONLY|O_CREATE" indicates it is written only if 
       // the file doesn't exist then create one. 
       // By convention, since file descriptor 1 has been closed previously, open(...)
       // will return the smallest available file descriptor, namely this 1. and assign
@@ -214,7 +237,7 @@ It is the same with a system call named `dup(...)`.
 
   Pipe is a small kernel buffer exposed to two or more processes; it is used for the communication of these processes. As an illustration, `ls foo | grep test` creates a pipe between `ls` and `grep`. 
 
-  Note that a pipe is a file descriptor, too. In `int p[2]; int pipe(p);` the function `pipe(p)`  creates a new pipe and put another file descriptors, namely read and write, into the pipe.
+  Note that a pipe is a file descriptor, too. In `int fds[2]; int pipe(fds);` the function `pipe(p)`  creates a new pipe and put another file descriptors, namely read and write, into the pipe.
 
 - What are pipes used for?
 
@@ -283,12 +306,14 @@ main()
   pipe(fds);
 
   pid = fork();
-  // "pid==0" indicates that it is a child process.
+  
   if (pid == 0) {
+    // "pid==0" indicates that it is a child process. 
+    // A child process is now writing "this is pipe2\n" into the write end of a pipe.
     write(fds[1], "this is pipe2\n", 14); // There are 14 characters in total.
   } else {
     // Here is a parent process. 
-    // 1. Read from a pipe, namely from fds[0]; store the data into "buf".
+    // 1. Read from the pipe, namely from fds[0]; store the data into "buf".
     n = read(fds[0], buf, sizeof(buf)); 
     // 2. Then, write the data in "buf" to the file descriptor of parent process itself. 
     write(1, buf, n);  
@@ -308,7 +333,7 @@ How shell implements pipelines? (Page 16,[textbook of 6.s081](.\Textbook\book-ri
 
 [An answer from ChatGPT](.\note-images\implements pipelines by shell.md).
 
-##### File System
+#### File System
 
 **(1) File names and `inode`**
 
@@ -335,5 +360,7 @@ The `root` of all directories is `/`, not `/root/`.
 
 **(3) Miscellaneous**
 
-`mknod` creates a new device file. 
+3.1 `mknod` creates a new device file. 
+
+3.2 file systems is managed by the kernel. 
 

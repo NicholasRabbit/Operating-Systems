@@ -60,7 +60,7 @@ main(int argc, char *argv[])
 
 
 
-#####  `open.c`
+#####  open.c
 
 `O_WRONLY | O_CREATE` is from `kernel/fcntl.h`.
 
@@ -80,7 +80,7 @@ main()
 }
 ```
 
-##### `exec.c`
+##### exec.c
 
 Why is the system call `exec(...)` followed by `printf(...)` immediately without any condition? Does it execute all the time?
 
@@ -106,9 +106,72 @@ main()
 
 Note: `exec()` is normally run after a `fork()`, the former will discard all the data a child copied from its parent and replace it with an executable file. The child process will keep the its parents' file descriptor table.
 
-##### `redirect.c`  
+The above program outputs "this is echo" without the first "echo". See the `user/echo.c`  in xv6 and the code about `main` in my C-code.
 
-See "Pipe" in Notes on Operating Systems
+##### pipe1.c. 
+
+```c
+
+// pipe1.c: communication over a pipe
+
+#include "kernel/types.h"
+#include "user/user.h"
+
+int
+main()
+{
+  int fds[2];
+  char buf[100];
+  int n;
+
+  // create a pipe, with two FDs in fds[0], fds[1].
+  pipe(fds);
+  
+  write(fds[1], "this is pipe1\n", 14);  // "this is pipe1\n" are 14 letters in total.
+  n = read(fds[0], buf, sizeof(buf));
+
+  write(1, buf, n);
+
+  exit(0);
+}
+```
+
+##### pipe2.c 
+
+```c
+
+#include "kernel/types.h"
+#include "user/user.h"
+
+// pipe2.c: communication between two processes
+
+int
+main()
+{
+  int n, pid;
+  int fds[2];
+  char buf[100];
+  
+  // create a pipe, with two FDs in fds[0], fds[1].
+  pipe(fds);
+
+  pid = fork();
+  if (pid == 0) {
+    write(fds[1], "this is pipe2\n", 14);
+  } else {
+    n = read(fds[0], buf, sizeof(buf));
+    write(1, buf, n);
+  }
+
+  exit(0);
+}
+```
+
+
+
+##### redirect.c
+
+See "Pipe" in Notes on Operating Systems for elaboration of this program. 
 
 ```c
 #include "kernel/types.h"
@@ -125,7 +188,8 @@ main()
   pid = fork();
   if(pid == 0){
     close(1);  // Close file descriptor 1, namely the output file.
-    open("output.txt", O_WRONLY|O_CREATE);
+    // 
+      open("output.txt", O_WRONLY|O_CREATE);
 
     char *argv[] = { "echo", "this", "is", "redirected", "echo", 0 };
     exec("echo", argv);
