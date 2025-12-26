@@ -364,7 +364,9 @@ It refers to the characters in the ASCII table, while "32-bit (4-byte) `int`s" m
 
 ##### 1.4) find
 
-*The Question*
+===============================
+
+**The Question**
 
 Write a simple version of the UNIX find program: find all the files  in a directory tree with a specific name.  Your solution  should be in the file `user/find.c`.   
 
@@ -378,7 +380,17 @@ Some hints:
 -  Note that == does not compare strings like in Python. Use strcmp() instead.    
 - Add the program to `UPROGS` in Makefile.  
 
-*Let's analyse.* 
+================================
+
+**Let's analyse.** 
+
+> (1) A function named `stat(...)` is in `user/ulib.c` and `strcmp(...)` for comparing strings is also in it.
+>
+> (2) N.B. the return value of `strcmp(...)` is not 0 when two strings are not identical, therefore, if we make it the condition of a `if(...)` we should add ``!` to `if(!strcmp(...))` to converse it. 
+>
+> (3) `read(fd, &de, sizeof(de))` also reads `.` and `..` in in a directory. So that
+>
+> (4) **N.B. It is to find all the files with a specific name, not directories.** Sadly, I hadn't read the question thoroughly so that I wasted much time on searching for both directories and files. Whereas, I realised that I was wrong and modified the code.  Finally, I finished this laboratory.
 
 I added some extra comments to the original code. 
 
@@ -504,12 +516,14 @@ main(int argc, char *argv[])
 
 ```
 
+There is a bug in my solution of "find" , which is when the program recurse to a directory and find a file it can't find another file in current directory following this directory. As an illustration, if the list of current directory is:
 
+```shell
+...
+a  1   # It is a directory with a file name b in it: a/b
+b  2   # It is a file.
+$ find . b
+./a/b  # Only b in a can be found.
+```
 
-(1) A function named `stat(...)` is in `user/ulib.c` and `strcmp(...)` for comparing strings is also in it.
-
-(2) N.B. the return value of `strcmp(...)` is not 0 when two strings are not identical, therefore, if we make it the condition of a `if(...)` we should add ``!` to `if(!strcmp(...))` to converse it. 
-
-(3) `read(fd, &de, sizeof(de))` also reads `.` and `..` in in a directory. 
-
-(4) **N.B. It is to find all the files with a specific name, not directories.** Sadly, I hadn't read the question thoroughly so that I wasted much time on searching for both directories and files. Whereas, I realised that I was wrong and modified the code.  Finally, I finished this laboratory.
+The reason is that I wrote `exit(...)` in the `find(...)` which results in terminating of the current process when the program recurses into a new `find(...)` and find one file with the specific. 
