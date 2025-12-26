@@ -527,3 +527,19 @@ $ find . b
 ```
 
 The reason is that I wrote `exit(...)` in the `find(...)` which results in terminating of the current process when the program recurses into a new `find(...)` and find one file with the specific. 
+
+```c
+int find(char *path, char *file_name)
+{	
+    // .....
+	/*
+	 * exit(...) should not be written here because it will ternimate the current
+     * process so that the following directories or file will NOT be read. 
+	 */ 
+	// exit(0);
+
+	close(fd);
+	return 0;
+}
+```
+
