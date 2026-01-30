@@ -144,7 +144,10 @@ A process can obtain a file descriptor by opening a file, directory, device, cre
 - Although `fork()` copies the file descriptor table, the offset is shared between parent and child  when reading  from or writing to a file. 
 
   ```c
-   else {  // A parent process.
+  if(fork() == 0) {
+      write(1, "hello ", 6);
+      exit(0); 
+  else {  // A parent process.
       wait(0);
       write(1, "world\n", 6);
   }
@@ -206,13 +209,17 @@ It is the same with a system call named `dup(...)`.
       // the file doesn't exist then create one. 
       // By convention, since file descriptor 1 has been closed previously, open(...)
       // will return the smallest available file descriptor, namely this 1. and assign
-      // it to "output.txt" instead of a terminal. 
+      // it to "output.txt" instead of a terminal. This child process will write to 
+      // file descriptor 1 by default. 
       // There is no need to receive the return value explicitly since there are only
-      // 0,1,and 2 descriptors in a process. This child process will write to file
-      // descriptor 1 by default. 
+      // 0,1,and 2 descriptors in a process.
       open("output.txt", O_WRONLY|O_CREATE); 
   
       char *argv[] = { "echo", "this", "is", "redirected", "echo", 0 };
+      /*
+      * "echo" is the first element of "argv", but it will not be output since the first
+      * element in argv[] is the name the the program itself. See main.c in my C code. 
+      */
       exec("echo", argv);
       printf("exec failed!\n");
       exit(1);
@@ -220,7 +227,7 @@ It is the same with a system call named `dup(...)`.
       wait((int *) 0);
     }
   
-  exit(0);
+  	exit(0);
   }
   ```
   

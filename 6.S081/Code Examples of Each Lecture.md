@@ -7,37 +7,46 @@
  `copy.c`. Note that the file descriptors are different in `copy.c` so that the content could be copied from one file to another. 
 
 ```c
-// copy.c: copy input to output.
-
+/*
+ * copy input to output
+ * Since the console are the default input and output of a process,
+ * this program read the arguments input by a user in a console and
+ * print it to the same console. 
+ */ 
 #include "kernel/types.h"
 #include "user/user.h"
-int
-main()
+
+int main(int argc, char *argv[])
 {
-  char buf[64];
-  while(1){
-    int n = read(0, buf, sizeof(buf));  // Read from a file with file descriptor 0.
-    if(n <= 0)
-      break;
-    write(1, buf, n); // Write content from buf to a file whit file descriptor 1.
-  }
-  exit(0);
+	char buf[64];
+	while (1) {
+		// 0 is the file descriptor for reading.
+		// the console is attached to 0 by default. 
+		int n = read(0, buf, sizeof(buf));	
+
+		if (n <= 0)
+			break;
+		// 1 is the file descritpor for standard output.
+		write(1, buf, n);
+	}
+
+	exit(0);
+
 }
+
 ```
 
-```c
-// Here are system calls called by 'copy.c': read(...) and write(...)
-int read(int fd, char *buf, int n);
-int write(int fd, char *buf, int n);
-```
+
 
 ##### echo.c
 
-`echo.c`
-
-Why does the `i` start from 1 in the following `for` loop?
+(1) Why does the `i` start from 1 in the following `for` loop?
 
 Because the first element `argc[0]` in `char *argc[]` is the name of the file to be executed, namely `echo.c`. The arguments which a user input in CLI start with index 1. (It is definitely necessary to learn C comprehensively.)
+
+(2) How the "echo" redirect to a file when I input `echo hello world > a.txt`?
+
+The `echo` doesn't parse `> < | &` and so forth. It is the shell (`sh.c`) that parses these symbols. When there is a `>`, shell will redirect the standard output to the file name follows it.  
 
 ```c
 #include "kernel/types.h"
