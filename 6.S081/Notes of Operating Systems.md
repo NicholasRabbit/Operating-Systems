@@ -92,26 +92,50 @@ As an illustration, when the *shell* is running, a user input `echo foo` in the 
 
 ##### PID
 
-**Why are the value of PID in a child process and its parent process different?**
-
-The child has its own unique PID, but not 0; `fork()` returns both in a new child process and its parent process. In the new process(child process), `fork()` returns 0. Whereas, `fork()` returns the real PID of a child in its parent process. **N.B.** that the PID is 0  which is returned from `fork()` doesn't mean that its real PID is 0 but it is just a return value from a `fork()` in a child process. 
-
-Note, as aforementioned,  `fork()` returns both in the original and new processes.  
+`./user/forkexample.c`  I added some comments to the original example code of `fork()` in the page 11 of the xv6 textbook.  
 
 ```c
-int pid = fork();
-if(pid > 0){
-    printf("parent: child=%d\n", pid);
-    pid = wait((int *) 0);
-    printf("child %d is done\n", pid);
-} else if(pid == 0){
-    // When pid is 0, it is in a child process.
-    printf("child: exiting\n");
-    exit(0);
-} else {
-	printf("fork error\n");
+#include "kernel/types.h"
+#include "user/user.h"
+
+/*
+ * This is a example code to verify whether there are two processes after "fork()".
+ */
+int main(int argc, char *argv[])
+{
+	// 1. Create a child process in fork(). Then there are two process: the parent itself and 
+	// the child process created by this parent.
+	int pid = fork();
+
+	// 2. These two processes will simultaneously execute two branches of the following "if...else if...".
+	if (pid > 0) {
+		printf("parent: child %d\n", pid);
+		// Note that "(int *) 0" is a pointer with the value of 0.
+		pid = wait((int *) 0);
+		printf("child is done\n", pid);
+	} else if (pid == 0) {
+		printf("child: exiting\n");
+		exit(0);
+	} else {
+		exit(-1);
+		printf("fork error!");
+	}
+
+	exit(0);
+
 }
+
 ```
+
+**(1) Why are both of the statements of `if(pid > 0) ` and `else if (pid == 0)` are executed ?** 
+
+**(2) Why are the value of PID in a child process and its parent process different?**  
+
+(1) The reason is that there are two processes after `int pid = fork()`: the parent itself and the child process created by this parent. The code from the next line will be executed by these two processes. 
+
+(2) In the original parent process, `fork()` returns the "real" PID of the child process, while in the child process the PID is 0 since it has NOT created any new processes and it is the process that is created by a parent.
+
+Note, as aforementioned,  `fork()` returns both in the original and new processes.  (Wrong!!)
 
 ##### wait
 

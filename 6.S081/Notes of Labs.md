@@ -241,7 +241,7 @@ int main(int argc, char* argv[])
 	
 	// The format of the command: argv = {"name of an instruction", "argv"}
 	// An example: argv = {"sleep", "3"}
-	int num_of_ticks = atoi(argv[1]);  // cast a string data to an integer.
+	int num_of_ticks = atoi(argv[1]);  // cast a string to an integer.
 	// call the system's function 'sleep(...)'.
 	sleep(num_of_ticks);
 	exit(0);
@@ -290,7 +290,7 @@ Some hints:
 - Add the program to `UPROGS` in Makefile.    
 - User programs on xv6 have a limited set of library functions available to them. You can see the list in    `user/user.h`; the source (other than for system calls)    is in `user/ulib.c`, `user/printf.c`,    and `user/umalloc.c`.  
 
-(1) It asks us to create a pair of pipes, namely two pipes to communicate between a parent process and its child process. One is used for a parent to write and its child to read and the other is used for the child to write back the byte and the parent to read. We can refer to `pipe2.c` in the examples of Lecture 1 to know how to implement pipes connecting two process. 
+(1) It asks us to create a pair of pipes, namely two pipes to communicate between a parent process and its child process. One pipe is used for a parent to write and its child to read and the other is used for the child to write back the byte and the parent to read. We can refer to `pipe2.c` in the examples of Lecture 1 to know how to implement pipes connecting two process. 
 
 (2) Don't forget to write `wait(0)` in the parent process to wait for its child to input a byte to a pipe and to `exit(0)`. Or the parent will execute the `if(...)` statement simultaneously when its child hasn't written any bytes into a pipe yet. 
 
