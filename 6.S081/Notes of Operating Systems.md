@@ -139,7 +139,10 @@ Note, as aforementioned,  `fork()` returns both in the original and new processe
 
 ##### wait
 
-If a parent have multiple child processes, one `wait(...)` only waits for one of them. In order to wait all child processes, a parent process must have the same number of `wait(...)` .
+1. If a parent have multiple child processes, one `wait(...)` only waits for one of them. In order to wait all child processes, a parent process must have the same number of `wait(...)` . 
+2. If a parent doesn't care about whether a child exit or not, it can pass 0 address to the argument of `wait()`. Note that it is the address with the value of 0, namely `wait((int *)0)`, but not 0 of integer. 
+
+3. See the above code named `forkexample.c` and page 7 in the textbook for more details about `wait()`.
 
 #### I/O and File Descriptors
 

@@ -91,11 +91,9 @@ main()
 
 ##### exec.c
 
-Why is the system call `exec(...)` followed by `printf(...)` immediately without any condition? Does it execute all the time?
+Why is the system call `exec(...)` followed by `printf("exec failed")` immediately without any condition? Does it execute all the time?
 
-Because the system call `exec(...)` will return only if there is an error. So it doesn't always execute.
-
-Apparently, ` printf("exec failed!\n")` will be executed when it incurs an error in the system call `exec(...)`.
+Because the system call `exec(...)` will return only if there is an error. Apparently, ` printf("exec failed!\n")` will be executed when it incurs an error in the system call `exec(...)`.
 
 ```c
 // exec.c: replace a process with an executable file
@@ -106,7 +104,7 @@ int
 main()
 {
   char *argv[] = { "echo", "this", "is", "echo", 0 };
-  exec("echo", argv); 
+  exec("echo", argv);   // output "this is echo" and the "argv[0]" is not displayed. 
   printf("exec failed!\n"); // This line of code will only run if exec() is failed.
   
   exit(0);
@@ -115,7 +113,7 @@ main()
 
 Note: `exec()` is normally run after a `fork()`, the former will discard all the data a child copied from its parent and replace it with an executable file. The child process will keep the its parents' file descriptor table.
 
-The above program outputs "this is echo" without the first "echo". See the `user/echo.c`  in xv6 and the code about `main` in my C-code.
+The above program outputs "this is echo" without the first "echo" which is at `argv[0]` that represents the command's name. See the `user/echo.c`  in xv6 and the code about `main` in my C-code.
 
 ##### pipe1.c. 
 

@@ -308,7 +308,7 @@ int main(int argc, char *argv[])
 	char buff[2];
 
 	// Note that a pair of pipes should be called outside the following
-	// "if...else" because they are shared by a child process and its parent. 
+	// "if...else" because they are shared by a child and its parent processes. 
 	pipe(fds);
 	pipe(fds_b);
 
@@ -384,17 +384,15 @@ Some hints:
 
 **Let's analyse.** 
 
-> (1) A function named `stat(...)` is in `user/ulib.c` and `strcmp(...)` for comparing strings is also in it.
->
-> (2) N.B. the return value of `strcmp(...)` is not 0 when two strings are not identical, therefore, if we make it the condition of a `if(...)` we should add ``!` to `if(!strcmp(...))` to converse it. 
->
-> (3) `read(fd, &de, sizeof(de))` also reads `.` and `..` in in a directory. So that
->
-> (4) **N.B. It is to find all the files with a specific name, not directories.** Sadly, I hadn't read the question thoroughly so that I wasted much time on searching for both directories and files. Whereas, I realised that I was wrong and modified the code.  Finally, I finished this laboratory.
+(1) A function named `stat(...)` is in `user/ulib.c` and `strcmp(...)` for comparing strings is also in it.
 
-I added some extra comments to the original code. 
+(2) N.B. the return value of `strcmp(...)` is not 0 when two strings are not identical, therefore, if we make it the condition of a `if(...)` we should add ``!` to `if(!strcmp(...))` to converse it 1 which indicates true. 
 
-`user/ls.c`
+(3) `read(fd, &de, sizeof(de))` also reads `.` and `..` in in a directory. So that
+
+(4) **N.B. It is to find all the files with a specific name, not directories.** Sadly, I hadn't read the question thoroughly so that I wasted much time on searching for both directories and files. Whereas, I realised that I was wrong and modified the code.  Finally, I finished this laboratory.
+
+`user/ls.c`    (I added some extra comments to the original code. )
 
 ```c
 #include "kernel/types.h"
@@ -419,7 +417,7 @@ fmtname(char *path)
   // Return blank-padded name.
   if(strlen(p) >= DIRSIZ)
     return p;
-  // Move conent in a place to another in memory. See 'user/user.h.' and 'user/ulib.c'.
+  // Move content in a place to another in memory. See 'user/user.h.' and 'user/ulib.c'.
   // "buf" is the destination.
   memmove(buf, p, strlen(p));  
   // Set the unused space in "buf" to ' '. See 'user/ulib.c'.
@@ -435,7 +433,8 @@ ls(char *path)
   struct dirent de;
   struct stat st;
     
-  // "fd" has already been assigned the return value even though the code of the 
+  // "fd" has already been assigned the return value because the code in 
+  // the condition of "if(condition)" has been executed, even though the code of the 
   // statement of the following "if..." is not executed. So "fd" can be used by the 
   // rest code of this function. 
   if((fd = open(path, O_RDONLY)) < 0){
@@ -470,8 +469,9 @@ ls(char *path)
     *p++ = '/'; 
           
     /*
-    * When reading a directory, a process will read all the files in this directory one
-    * by one, therefore, the "while" is being executed as many as the number of files.
+    * When reading a directory, it is a "while loop", therefore, a process will read all
+    * the files in this directory one by one, therefore, the "while" is being executed 
+    * as many as the number of files, if the condition is true.
     */
     while(read(fd, &de, sizeof(de)) == sizeof(de)){
       if(de.inum == 0)
@@ -520,13 +520,13 @@ There is a bug in my solution of "find" , which is when the program recurse to a
 
 ```shell
 ...
-a  1   # It is a directory with a file name b in it: a/b
-b  2   # It is a file.
+a  1   # "1" indicates it is a dir. It is a directory with a file name b in it: a/b
+b  2   # "2" indicates it is a file.
 $ find . b
 ./a/b  # Only b in a can be found.
 ```
 
-The reason is that I wrote `exit(...)` in the `find(...)` which results in terminating of the current process when the program recurses into a new `find(...)` and find one file with the specific. 
+The reason is that all the recursive functions are in one process. Whereas, I wrote `exit(...)` in the `find(...)`, which terminates the current process when the program recurses into a new `find(...)` and find one file with the specific name.  
 
 ```c
 int find(char *path, char *file_name)
@@ -542,4 +542,27 @@ int find(char *path, char *file_name)
 	return 0;
 }
 ```
+
+##### 1.5 ) xargs
+
+Note: 
+
+1. The command in the example is `echo hello too | xargs echo bye`. How can `xargs` read the input from the previous `echo`? 
+
+   It is easy to read the input from it. Just read from the standard input. If there is a pipeline, `xargs` will read from it; if there isn't the standard input is the console. Hence, if we enter `xargs echo bye` only, the console will wait for input from user. 
+
+   ```c
+   char buf[215];
+   if (pid > 0) {
+       read(0, buf, sizeof buf);
+   }
+   ```
+
+2. In `xargs echo bye`, `echo bye` are from `*argv[]`. 
+
+3. A char array `char buf[]` is an element of  `*argv[]`, therefore, it can be added at the end of `*argv[]`. 
+
+How to do the lab ? 
+
+1. After working for a long time, my `xargs` can read standard input from `echo hello too`  and read `echo bye` from `*argv[]`. Whereas, I don't know how to remove the `echo` from the `*argv[]` or add `hell too` after  `bye`.
 
