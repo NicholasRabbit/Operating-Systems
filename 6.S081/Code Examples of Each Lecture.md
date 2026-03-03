@@ -91,9 +91,13 @@ main()
 
 ##### exec.c
 
-Why is the system call `exec(...)` followed by `printf("exec failed")` immediately without any condition? Does it execute all the time?
+(1) Why is the system call `exec(...)` followed by `printf("exec failed")` immediately without any condition? Does it execute all the time?
 
 Because the system call `exec(...)` will return only if there is an error. Apparently, ` printf("exec failed!\n")` will be executed when it incurs an error in the system call `exec(...)`.
+
+(2) Why is there an `exit(0)` after the `exec(...)` ? 
+
+It is used to terminate the process after `exec` fails to avoid unexpected hazardous. 
 
 ```c
 // exec.c: replace a process with an executable file

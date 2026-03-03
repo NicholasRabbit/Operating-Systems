@@ -566,3 +566,130 @@ How to do the lab ?
 
 1. After working for a long time, my `xargs` can read standard input from `echo hello too`  and read `echo bye` from `*argv[]`. Whereas, I don't know how to remove the `echo` from the `*argv[]` or add `hell too` after  `bye`.
 
+**There are bugs in my solution:** 
+
+```c
+// My first solution has bugs. 
+#include "kernel/types.h"
+#include "kernel/stat.h"
+#include "user/user.h"
+#include "kernel/fs.h"
+
+#define MAXARG 16 
+
+int main(int argc, char *argv[])
+{
+	if (argc < 2) {
+		fprintf(2, "Input at least one argument.\n");
+		exit(2);
+	
+	} else if (argc > MAXARG) {
+		fprintf(2, "Too many arguments. Input no more than 15.\n");
+	}
+
+
+	char buf[32];
+	char *argv2[MAXARG];
+
+	int pid = fork();
+
+	if (pid > 0) {
+		// The parent process:
+		wait((int *)0);
+	} else if (pid == 0) {
+		
+        read(0, buf, sizeof buf);
+		int i = 0;
+		while ((argv2[i] = argv[i]) != 0)
+			++i;	
+
+		argv2[i++] = buf;
+		argv2[i] = '\0'; 
+
+		printf("argv2 %s\n", argv2[1]);
+
+		exec(argv2[1], argv2 + 1);
+		// One child process exits. 
+		exit(0);
+	}
+	exit(0);
+}
+```
+
+**What are the bugs?** 
+
+There are multiple bugs in  the above code.
+
+1. If I enter `echo hello too | xargs echo bye`, it can output `bye hello too` properly. Whereas, if I type `xargs echo bye`, the program waits standard input so I have to terminate the input by pressing `Ctrl + D` to add `EOF` manually. Apparently, it is not a correct solution. 
+
+   However, when I tested the `xargs` in Unix, it also waits for input. It it not a bug, but my code has other bugs. 
+
+2. It asks us to individual lines of input, but I didn't deal with `\n` and to use `fork` and `exec` to invoke the command for each line of input. Sadly, I read the hints but I didn't understand until I wrote buggy code. 
+
+3. The program doesn't read input characters one by one as it is said in the "hints". 
+
+4. 
+
+**Why does the program wait for input for a pipeline or standard input?**
+
+The reason is that `read(...)` is a blocking call so it will wait infinitely until it receive something. 
+
+**After debugging**
+
+The following is much better than the previous one, but it it not perfect. 
+
+```c
+int main(int argc, char *argv[])
+{
+	if (argc < 2) {
+		fprintf(2, "Input at least one argument.\n");
+		exit(2);
+	
+	} else if (argc > MAXARG) {
+		fprintf(2, "Too many arguments. Input no more than 15.\n");
+	}
+
+
+	char buf[32];
+	char *argv2[MAXARG];
+
+
+		// Combine standard input and arguments.
+		int i, j;  // Don't copy the argv[0], which is "xargs" itself.
+		for (i = 0, j = 1; j < argc; j++, i++) {
+			argv2[i] = argv[j];
+		}
+	
+	// Read from standard input, such as from  a pipeline in `echo hello | xargs echo bye`. 
+	// From the hints, we know that this progrm should read a character each time until
+	// it encounters '\n'.
+
+	char c;
+	int k = 0;
+	while (read(0, &c, sizeof c) > 0) {	// "read()" returns the length it reads from standard input, including the last '\0'.
+		if (c == '\n') {
+			buf[k++] = c;
+
+			argv2[i] = buf;
+			// "Use fork and exec to invoke a comand on each line of input." from hints
+			int pid = fork();
+			if (pid == 0) {
+				exec(argv2[0], argv2);
+				printf("exec failed");
+				exit(0);
+			} else if (pid > 0) {
+				wait(0);
+			} else {
+				printf("fork error!");
+			}
+
+		} else {
+			buf[k++] = c;		
+		}
+	}
+
+	exit(0);
+
+}
+```
+
