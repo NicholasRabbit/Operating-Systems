@@ -402,3 +402,20 @@ The `root` of all directories is `/`, not `/root/`.
 
 3.2 file systems is managed by the kernel. 
 
+### Chapter 2
+
+**Antonyms:** 
+
+(1) [Page table](https://en.wikipedia.org/wiki/Page_table): a page table is the data structure  that is used by a virtual memory system in a computer to store mapping between virtual addresses and physical addresses. Page tables translate virtual address to physical. 
+
+#### 2.5 Process Overview
+
+(1) The unit of isolation of xv6 and in other Unix systems is a process. 
+
+(2) A virtual address is manipulated by RISC-V instruction and a physical address is that that is sent by CPU chip to main memory. 
+
+(3) Note that xv6 only uses 38 bits as addresses, the addresses are $2^{38}$ in total, but the maximum address is $2^{38} - 1$.
+
+#### 2.6 Code: starting xv6, the first process and system call  
+
+(1) xv6, as an operating system like all the other OSes, should be loaded to the memory of a computer to run. Of course, should they. 
