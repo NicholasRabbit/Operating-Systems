@@ -56,7 +56,7 @@ RISC-V, which is an acronym of Reduced Instruction Set Computer-Five,  is an ope
 - Abstraction of hardware
 - Multiply these hardware
   It offers a platform on which many applications such as text editors,  web browsers, and so forth could run at the same time, or likely at the same time.
-- Isolated different applications when one of them breaks down others are not affected.
+- Isolated different applications when one of them breaks down others are not affected. If there is no OS, one application has an infinite loop then the whole machine will stop. 
 - Sharing data among applications. 
   For instance, we can transfer out file via email on a web browser. 
 - Securing the users' data.
@@ -408,6 +408,55 @@ The `root` of all directories is `/`, not `/root/`.
 
 (1) [Page table](https://en.wikipedia.org/wiki/Page_table): a page table is the data structure  that is used by a virtual memory system in a computer to store mapping between virtual addresses and physical addresses. Page tables translate virtual address to physical. 
 
+#### Notes of Lecture 2
+
+(1) In [Intro to C](.]\Turorials\Lecture_2\6S081-Intro-to-C-Fa21.pdf), why does the code in page 28 cause a "Segmentation fault" ? 
+
+```c
+long x = 0xDEADBEEF;
+int *x2 = (int *)x;   
+*x2 = 12345;	// "Segmentation fault" occurs. 
+```
+
+I guess that the address (`0xDEADBEEF`) can not be accessed in memory. 
+
+(2) Hardware support for strong isolation by doing the two things: 
+
+1. User/kernel mode
+
+2. Virtual memory. 
+
+   It is memory isolation.  Each process has its own page table, which maps virtual memory to 
+
+
+(3) Start `xv6` in debugging mode. See "Notes of Labs".
+
+`xv6` starts from _entry(`0x80000000`) in `./kernel/kernel.asm`. In the following code, `0000a117` is the byte code of `auipc   sp,0xa`. Its format is as same as  that in `x86`  except for they have different ISA. 
+
+```assembly
+    1
+    2 kernel/kernel:     file format elf64-littleriscv
+    3
+    4
+    5 Disassembly of section .text:
+    6
+    7 0000000080000000 <_entry>:
+    8     80000000:   0000a117            auipc   sp,0xa
+    9     80000004:   83010113            addi    sp,sp,-2000 # 80009830 <stack0>
+   10     80000008:   6505                    lui a0,0x1
+   11     8000000a:   f14025f3            csrr    a1,mhartid
+   12     8000000e:   0585                    addi    a1,a1,1
+   13     80000010:   02b50533            mul a0,a0,a1
+   14     80000014:   912a                    add sp,sp,a0
+   15     80000016:   070000ef            jal ra,80000086 <start>
+```
+
+
+
+#### 2.3 Kernel Organisation 
+
+
+
 #### 2.5 Process Overview
 
 (1) The unit of isolation of xv6 and in other Unix systems is a process. 
@@ -419,3 +468,8 @@ The `root` of all directories is `/`, not `/root/`.
 #### 2.6 Code: starting xv6, the first process and system call  
 
 (1) xv6, as an operating system like all the other OSes, should be loaded to the memory of a computer to run. Of course, should they. 
+
+**System call**
+
+(1) In user space, calls like`fork()` , `write()` and others don't invoke the corresponding calls in kernel. The call `ecall(..)` and `ecall(...)` will call `syscall` so that the argument can be verified in case of some invalid address or instructions. 
+

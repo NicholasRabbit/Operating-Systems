@@ -75,6 +75,8 @@ Solution:
 
 ### 2, Start  and quit xv6
 
+#### Start in normal mode
+
 1) Check if all the tools needed are installed.
 
 ```shell
@@ -126,6 +128,43 @@ X
 ```
 
 N.B. Don't press the three keys at the same time. First press `Ctrl + A`, then release them and press `X`. 
+
+#### Start in debugging mode
+
+Start the xv6 in debugging mode so that we can monitor how this operating system starts from the first instruction. (in Ubuntu 20.04)
+
+1. First of all, start `xv6` with gdb mode in the root of the lab.
+
+   ```shell
+   make CPUS=1 qemu-gdb
+   ```
+
+   There are outputs to show us the tcp:xxxx port and instruct us to open a new window.
+
+2. Then open a new window, in the same directory run multiarch
+
+   ```shell
+   gdb-multiarch
+   ```
+
+3. In the gdb, load the kernel file and connect the qemu.
+
+   ```shell
+   (gdb)file kernel/kernel
+   (gdb)target remote localhost:25000   # The port number is in the first console. 
+   ```
+
+4. Start debugging.
+
+   ```shell
+   (gdb)break _entry  # set a breakpoint at the "_entry". See "kernel/kernel.asm"
+   (gdb)layout split  # Show splited windows to monitor the source file and instructions
+   (gdb)c			   # Continue. Don't enter "start" becasue qemu has already started.
+   (gdb)next 		   # Then we can use next, step and so forth to debug. 
+   (gdb)nexti
+   ```
+
+   
 
 ### 3, Explanation of Terminologies
 
