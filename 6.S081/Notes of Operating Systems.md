@@ -51,7 +51,7 @@ RISC-V, which is an acronym of Reduced Instruction Set Computer-Five,  is an ope
 
 ### 2, Purposes of Operating Systems
 
-**What the purposes for which these operating systems are made for?**
+**What the purposes for which these operating systems are made?**
 
 - Abstraction of hardware
 - Multiply these hardware
@@ -70,7 +70,7 @@ RISC-V, which is an acronym of Reduced Instruction Set Computer-Five,  is an ope
 
 ### Chapter 1 
 
-#### Processes and memory
+#### 1.1 Processes and memory
 
 ##### Process
 
@@ -148,7 +148,7 @@ Note, as aforementioned,  `fork()` returns both in the original and new processe
 
 3. See the above code named `forkexample.c` and page 7 in the textbook for more details about `wait()`.
 
-#### I/O and File Descriptors
+#### 1.2 I/O and File Descriptors
 
 ##### What are file descriptors?
 
@@ -267,7 +267,7 @@ It is the same with a system call named `dup(...)`.
 
 - `copy(...)` doesn't care about the format of data. Whatever data is, it is just a sequence of byte in a computer system.
 
-#### Pipe
+#### 1.3 Pipes
 
 ##### Notes of pipe
 
@@ -371,7 +371,7 @@ How shell implements pipelines? (Page 16,[textbook of 6.s081](.\Textbook\book-ri
 
 [An answer from ChatGPT](.\note-images\implements pipelines by shell.md).
 
-#### File System
+#### 1.4 File System
 
 **(1) File names and `inode`**
 
@@ -408,6 +408,8 @@ The `root` of all directories is `/`, not `/root/`.
 
 (1) [Page table](https://en.wikipedia.org/wiki/Page_table): a page table is the data structure  that is used by a virtual memory system in a computer to store mapping between virtual addresses and physical addresses. Page tables translate virtual address to physical. 
 
+(2) A process is the unit of isolation in xv6. 
+
 #### Notes of Lecture 2
 
 (1) In [Intro to C](.]\Turorials\Lecture_2\6S081-Intro-to-C-Fa21.pdf), why does the code in page 28 cause a "Segmentation fault" ? 
@@ -420,16 +422,8 @@ int *x2 = (int *)x;   
 
 I guess that the address (`0xDEADBEEF`) can not be accessed in memory. 
 
-(2) Hardware support for strong isolation by doing the two things: 
 
-1. User/kernel mode
-
-2. Virtual memory. 
-
-   It is memory isolation.  Each process has its own page table, which maps virtual memory to 
-
-
-(3) Start `xv6` in debugging mode. See "Notes of Labs".
+(2) Start `xv6` in debugging mode. See "Notes of Labs".
 
 `xv6` starts from _entry(`0x80000000`) in `./kernel/kernel.asm`. In the following code, `0000a117` is the byte code of `auipc   sp,0xa`. Its format is as same as  that in `x86`  except for they have different ISA. 
 
@@ -451,7 +445,41 @@ I guess that the address (`0xDEADBEEF`) can not be accessed in memory.
    15     80000016:   070000ef            jal ra,80000086 <start>
 ```
 
+#### 2.1 Abstracting Physical Resources
 
+1) Why do we need operating systems ? 
+
+Since any application can have its tailored library and can interact with hardware resources to achieve higher performance than that with operating systems, why do we use OSes ? 
+
+If it is an embedded system and it the sole using hardware, it is reasonable to install it without an operating systems. Whereas, there are many applications in a computer and they must share the CPU, memory and other resources periodically. If one application has an infinite loop or bugs, it will affect other applications. An operating system can isolate them, share hardware resources periodically and terminate applications with bugs. Meanwhile, OS has pipes should application interact with each other. They interact with OS instead of hardware. 
+
+
+
+#### 2.2 User mode, supervisor mode and system calls. 
+
+**1) Strong Isolation**
+
+Hardware support for strong isolation by doing the two things: 
+
+1. User/kernel mode
+
+2. Virtual memory. 
+
+   It is memory isolation.  Each process has its own page table, which maps virtual memory to physical one. 
+
+**2) Supervisor mode**
+
+1. The software running in kernel space (or supervisor mode) is called kernel. 
+
+2. An application wants to invoke a kernel function, such as `read, write and fork` in xv6, must transition control to the kernel. The application can not invoke the system call directly. 
+
+   Since when instructions in an application are executed, they need to use CPUs so the CPU is in user mode now. When an application invoke a system call, the CPU should switch user mode to supervisor mode so that the kernel, can use it. To implement that, the CPU provides a special instruction to enter the kernel at an entry point specified by the kernel. RISC-V provides `ecall` to serve this goal. The kernel will check the arguments of `ecall` to verify if they are valid address, or malicious exploit code. 
+
+   Note that it is the kernel that control the entry point for transitions to supervisor mode, not the applications.  
+
+**3) System calls**
+
+1. In user space, calls like`fork()` , `write()` and others don't invoke the corresponding calls in kernel. The call `ecall(..)` and `ecall(...)` will call `syscall` so that the argument can be verified in case of some invalid address or instructions. 
 
 #### 2.3 Kernel Organisation 
 
@@ -469,7 +497,5 @@ I guess that the address (`0xDEADBEEF`) can not be accessed in memory.
 
 (1) xv6, as an operating system like all the other OSes, should be loaded to the memory of a computer to run. Of course, should they. 
 
-**System call**
 
-(1) In user space, calls like`fork()` , `write()` and others don't invoke the corresponding calls in kernel. The call `ecall(..)` and `ecall(...)` will call `syscall` so that the argument can be verified in case of some invalid address or instructions. 
 
