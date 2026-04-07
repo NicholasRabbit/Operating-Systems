@@ -483,6 +483,8 @@ Hardware support for strong isolation by doing the two things:
 
 #### 2.3 Kernel Organisation 
 
+1. Operating systems are typically organised in two distinct ways. One is monolithic kernel, such as Unix and Linux. The other is micro kernel, for example, Minix, L4 and QNX. Micor kernel organisation is widely used in embedded settings. 
+
 
 
 #### 2.5 Process Overview
