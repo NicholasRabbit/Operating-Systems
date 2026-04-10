@@ -491,13 +491,19 @@ Hardware support for strong isolation by doing the two things:
 
 (1) The unit of isolation of xv6 and in other Unix systems is a process. 
 
-(2) A virtual address is manipulated by RISC-V instruction and a physical address is that that is sent by CPU chip to main memory. 
+(2) In page table, a virtual address is manipulated by RISC-V instruction and a physical address is that that is sent by CPU chip to main memory. 
 
 (3) Note that xv6 only uses 38 bits as addresses, the addresses are $2^{38}$ in total, but the maximum address is $2^{38} - 1$.
 
+(4)  Thread, user stack and kernel stack. 
+
+"Each process has a thread of execution(or *thread* as it is usually called) that executes the process' instructions. " In xv6, each process consists of one address and one thread. In real operating systems, a process may have many threads to take advantage of multiple CPUs.  
+
+"Each process has two stacks: a user stack and a kernel stack(`p -> kstack`)". The user stack stores instructions in user space, namely the instructions programmers write. When the process is executing user instructions, the kernel stack is empty. When the process enters into the kernel, for example, there is a system call or interrupt, instructions in kernel execute on the kernel stack. The instructions on the user stack is kept, but it is not active.
+
+A thread alternates between the user stack and the kernel stack.
+
 #### 2.6 Code: starting xv6, the first process and system call  
 
-(1) xv6, as an operating system like all the other OSes, should be loaded to the memory of a computer to run. Of course, should they. 
-
-
+(1) xv6, as an operating system like all the other OSes, should be loaded to the memory of a computer to run. Of course.
 
