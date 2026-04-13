@@ -75,7 +75,7 @@ Solution:
 
 ### 2, Start  and quit xv6
 
-#### Start in normal mode
+#### Starting xv6 in normal mode
 
 1) Check if all the tools needed are installed.
 
@@ -129,7 +129,7 @@ X
 
 N.B. Don't press the three keys at the same time. First press `Ctrl + A`, then release them and press `X`. 
 
-#### Start in debugging mode
+#### Starting xv6 in debugging mode
 
 Start the xv6 in debugging mode so that we can monitor how this operating system starts from the first instruction. (in Ubuntu 20.04)
 
@@ -166,9 +166,23 @@ Start the xv6 in debugging mode so that we can monitor how this operating system
 
    
 
-### 3, Explanation of Terminologies
+### 3, Miscellaneous
+
+**Terminology: **
 
 QEMU: It is simulation of hard ware.
+
+**How to grade ?** 
+
+```shell
+make grade	# Run all tests.
+# Run a grade test for one assignment. 
+./grade-lab-util sleep	
+# or
+make GRADEFLAGS=sleep grade
+```
+
+
 
 ### 4, Labs
 
@@ -274,7 +288,7 @@ int main(int argc, char* argv[])
 {
 	// Handling the error of illegal arguments
 	if (argc != 2) {
-		printf("Only need 2 arguments");
+		printf("");
 		exit(-1);
 	}
 	
@@ -331,7 +345,9 @@ Some hints:
 
 (1) It asks us to create a pair of pipes, namely two pipes to communicate between a parent process and its child process. One pipe is used for a parent to write and its child to read and the other is used for the child to write back the byte and the parent to read. We can refer to `pipe2.c` in the examples of Lecture 1 to know how to implement pipes connecting two process. 
 
-(2) Don't forget to write `wait(0)` in the parent process to wait for its child to input a byte to a pipe and to `exit(0)`. Or the parent will execute the `if(...)` statement simultaneously when its child hasn't written any bytes into a pipe yet. 
+(2) Don't forget to write `wait(0)` in the parent process to wait for its child to input a byte to a pipe and to `exit(0)`. Or the parent will execute the `if(...)` statement simultaneously when its child hasn't written any bytes into a pipe yet.  
+
+**N.B.** `wait(...)` waits for only one child process, namely the parent will wait for only one child to exit when the function is called. If the parent have many child process, it won't wait for others. 
 
 A solution is as follows.
 

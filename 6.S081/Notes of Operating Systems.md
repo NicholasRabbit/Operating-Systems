@@ -39,6 +39,12 @@ When a process needs to invoke a kernel service, it actually invokes a system ca
 
 Note that system calls are written in C so that they look like function calls, but they are not. 
 
+**exit(...)**
+
+`exit(0)`: 0 indicates success and 1 indicates failure. 
+
+
+
 **Detailed Description of System Calls**
 
 
@@ -107,11 +113,12 @@ As an illustration, when the *shell* is running, a user input `echo foo` in the 
  */
 int main(int argc, char *argv[])
 {
-	// 1. Create a child process in fork(). Then there are two process: the parent itself and 
-	// the child process created by this parent.
+	// 1. Create a child process in fork(). There are two process: the parent itself and 
+	// the child process created by this parent after "fork()" is called. 
 	int pid = fork();
 
-	// 2. These two processes will simultaneously execute two branches of the following "if...else if...".
+	// 2. These two processes will simultaneously execute either of two branches of the
+    // following "if...else if...".
 	if (pid > 0) {
 		printf("parent: child %d\n", pid);
 		// Note that "(int *) 0" is a pointer with the value of 0.
@@ -135,7 +142,7 @@ int main(int argc, char *argv[])
 
 **(2) Why are the value of PID in a child process and its parent process different?**  
 
-(1) The reason is that there are two processes after `int pid = fork()`: the parent itself and the child process created by this parent. The code from the next line will be executed by these two processes. 
+(1) The reason is that there are two processes after `int pid = fork()`: the parent process itself and the child process created by this parent. The code from the next line will be executed by these two processes. 
 
 (2) In the original parent process, `fork()` returns the "real" PID of the child process, while in the child process the PID is 0 since it has NOT created any new processes and it is the process that is created by a parent.
 
