@@ -29,8 +29,6 @@ A kernel is a special programme which provides services to run programmes in use
 
 Normally, an operating system has only one kernel but has many process. 
 
-
-
 ##### 1.3 What are system calls?
 
 System calls are interfaces offered by the kernel of an operating system for applications in user space.
@@ -38,16 +36,6 @@ System calls are interfaces offered by the kernel of an operating system for app
 When a process needs to invoke a kernel service, it actually invokes a system call. When a system call are being called, they jump into the kernel to execute. The kernel retrieves the arguments in the system call and do its job. The process alternates between user space and kernel space. 
 
 Note that system calls are written in C so that they look like function calls, but they are not. 
-
-**exit(...)**
-
-`exit(0)`: 0 indicates success and 1 indicates failure. 
-
-
-
-**Detailed Description of System Calls**
-
-
 
 ##### 1.4 What is RISC-V?
 
@@ -148,12 +136,36 @@ int main(int argc, char *argv[])
 
 Note, as aforementioned,  `fork()` returns both in the original and new processes.  (Wrong!!)
 
-##### wait
+##### System Calls
+
+###### wait
 
 1. If a parent have multiple child processes, one `wait(...)` only waits for one of them. In order to wait all child processes, a parent process must have the same number of `wait(...)` . 
 2. If a parent doesn't care about whether a child exit or not, it can pass 0 address to the argument of `wait()`. Note that it is the address with the value of 0, namely `wait((int *)0)`, but not 0 of integer. 
-
 3. See the above code named `forkexample.c` and page 7 in the textbook for more details about `wait()`.
+
+###### exit(...)
+
+1. `exit(0)`: 0 indicates success and 1 indicates failure. 
+
+###### write(...)
+
+1. `int write(int fd, char *buf, int n)`: 
+
+   In the xv6, the second argument is `const void *` of `int write(int, const void *, int)`, therefore, it can be a pointer of an integer. 
+
+2. Note that if  `write(...)`   writes to a console, only visible characters will display.
+
+   For example,
+
+   ```c
+   int n = 0x17; // ETB (ends of trans, blk)
+   write(1, &n, 1);  // Nothing is displayed on the console.
+   int m = 0x42; // 'B'
+   write(1, &m, 1)		// It will display 'B'.
+   ```
+
+   
 
 #### 1.2 I/O and File Descriptors
 

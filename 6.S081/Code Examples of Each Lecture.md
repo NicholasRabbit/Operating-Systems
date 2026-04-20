@@ -171,7 +171,7 @@ main()
     write(fds[1], "this is pipe2\n", 14);
   } else {
     n = read(fds[0], buf, sizeof(buf));
-    write(1, buf, n);
+    write(1, buf, n);	// Write to the file descriptor default output: the console. 
   }
 
   exit(0);
