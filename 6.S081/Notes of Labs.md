@@ -357,47 +357,69 @@ A solution is as follows.
 
 int main(int argc, char *argv[])
 {
-	int pid, c_pid;
+	int pid;
 	int fds[2];
 	int fds_b[2];
 	char buff[2];
 
 	// Note that a pair of pipes should be called outside the following
-	// "if...else" because they are shared by a child and its parent processes. 
+	// "if...else" because they are shared by a child process and its parent. 
 	pipe(fds);
 	pipe(fds_b);
 
-	c_pid = fork();
-	if (c_pid == 0) {
-		// A child process reads a byte from a pipe and stores the data to "buff".
-		read(fds[0], buff, 1);
-		if (buff[0] == 'A') {
-			// If a child received "A" from its parent, it writes the "A" 
-			// into its file descriptor. Since the default output of a process 
-			// is a console, so the "A" will be printed on the CLI.
-			//write(1, buff, 1); // Printing "A" on the CLI.
+	pid = fork();
+	// After the above "fork()", there are two process executing the following code.
 
-			pid = getpid();
-			printf("%d: received ping\n", pid);
+	// The parent process.
+	if (pid > 0) {
 
-			// The child should write "A" back the a pipe so that its parent can
-			// read from the pipe.
-			write(fds_b[1], "B", 1);
-			exit(0);
-		}
-		exit(1);
-	} else {
 		write(fds[1], "A", 1);
-		// Wait for a child process to exit.
+
+		// (1) Wait for a child process to exit.
+		// If a parent process doesn't wait, the following code will be run simultaneously, 
+		// therefore, it might not receive the message "B" from its child process. 
+		// (2) Whereas, reading from a pipe holds the parent process if the child process doesn't
+		// exit.
 		wait(0);
-        
-		read(fds_b[0], buff, 1);   // To read a byte in a pipe from a child.
-		if (buff[0] == 'B') {    
+		
+		read(fds_b[0], buff, 1);  // (2) read from a pipe.
+		if (buff[0] == 'B') {
+				// Get the parent process ID.
 				pid = getpid();
 				printf("%d: received pong\n", pid);
 		}
 		exit(0);
+
+	} else if (pid == 0) {
+		// A child process reads a byte from a pipe and stores the data to "buff".
+		read(fds[0], buff, 1);
+
+		if (buff[0] == 'A') {
+
+			// If a child received "A" from its parent, it writes the "A" 
+			// into its file descriptor. Since the default output of a process 
+			// is a console, so the "A" will be printed on the CLI.
+			//write(1, buff, 1); // To test if the 'A' is output.
+
+			// Get the child process ID.
+			pid = getpid();
+			printf("%d: received ping\n", pid);
+
+			// The child should write something such as "B" back the a pipe so that its parent can
+			// read from the pipe.
+			write(fds_b[1], "B", 1);
+			exit(0);
+		}
+
+		exit(1);
+
+	} else {
+		exit(-1);
+		printf("fork error!");
 	}
+	
+	exit(0);
+
 }
 ```
 
@@ -407,19 +429,195 @@ Some hints:
 
 - It's simplest to directly write 32-bit (4-byte) `int`s to the pipes, rather than using formatted ASCII I/O.     
 
-**Elaboration of Some Hints:**
+***Elaboration of Some Hints:***
 
 What is "formatted ASCII I/O"?
 
-It refers to the characters in the ASCII table, while "32-bit (4-byte) `int`s" means the decimal or hexadecimal value represented by 4-byte integers.
+It refers to the characters in the ASCII table, while "32-bit (4-byte) `int`s" means the decimal or hexadecimal value represented by 4-byte integers. It is `int write(int, const void *, int)`, so the second argument can be a pointer of integer. 
+
+**How to do the prime lab?**
+
+```c
+// The pseudo-code
+p = get a number from left neighbor
+print p
+loop:
+    n = get a number from left neighbor
+    if (p does not divide n)
+        send n to right neighbor
+```
+
+<img src="note-images/1777945623129.png" alt="1777945623129" style="zoom: 67%;" />
+
+1) First of all, read [this report](https://swtch.com/~rsc/thread/) on Doug McIlroy's s sieve and [Eratosthenes Sieves](https://en.wikipedia.org/wiki/Sieve_of_Eratosthenes). 
+
+2) From the pseudo code and the picture we can infer that there is a process feeding numbers from 2 to 35 to a pipe; presumably, this process is the parent. Then a child process reads and sieves. 
+
+3) When the child process read the first number, `p = 2`, it should print it. 
+
+Then this child reads the next number, `n = 3`, from the left labour(its parent) and let 2 divide 3. Since 3 is not a multiple of 2, feed 3 to the right neighbour(the grandchild process). 
+
+And then read the next number: `n = 4`, which is a multiple of 2. and drop it. 
+
+Keep on.  Read the next 5 and it is not a multiple of 2, feed it to the right neighbour(the same grandchild process which receives `3`). 
+
+4) In the second child process, when it receives the first number: 3, it should print it since there are not any other numbers to divide. 
+
+It won't receive 4, because it is dropped in the previous child process. 
+
+When it receives 5, print it because it is not a multiple of 3. 
+
+When it receives 6, drop it because it is a multiple of 3. 
+
+We have already known the rule now. Move on. 
+
+**Code of `primes.c`**
+
+The first edition, which is not correct although it prints all the primes. It uses while loop instead of recursively creating child process to implement. Furthermore, neither parent nor child process closes pipe properly. 
+
+```c
+#include "kernel/types.h"
+#include "user/user.h"
+
+#define N 34
+#define SIZE_INT 4	// size of int
 
 
+// Wrong impletation.
+int loop_proc(int p[]) 
+{
+
+	int m, k, pid;
+
+	read(p[0], &m, sizeof(int));
+	printf("pid %d --> %d\n", getpid(), m);
+	while (read(p[0], &k, sizeof(int))) {
+		// Drop multiples of m.
+		if (k % m == 0)
+			continue;
+		// Feed numbers to the right neighbour.
+		int p2[2];
+		pipe(p2);
+		pid = fork();
+		// The child is the parent of the newly created grandchild process.
+		if (pid > 0) {
+			// Write non-multiplied numbers to the right neighbour.
+			write(p2[1], &k, SIZE_INT);
+		} else if (pid == 0) {
+			// The grandchild process.
+			read(p2[0], &m, SIZE_INT);
+			printf("pid %d --> %d\n", getpid(), m);
+		}
+
+	}
+	return 0;
+}
+```
+
+Correct code: 
+
+1) Note that after `fork`, both parent and child have file descriptors referencing the pipe. Namely, the read end has two references from the parent and the child, so is the write end. Since the parent doesn't need the read end, it should close it: `close(p[0])`. Similarly, the child should  close the write end:`close(p[1])`
+
+```c
+pipe(p);
+// Create a child process.
+// After forking, child copies the file descriptor table from the parent, includin pipes.
+pid = fork();  
+```
+
+2) The while loop which constantly writes integers to a pipe should be in the new parent process. Calling the recursive `sieve(..)` is in the new child process.  **In fact, this `sieve()` creates a long pipeline of multiple pipes created in each call.** 
+
+```c
+void sieve(int fds[])
+{
+	// close the write end of a pipe in a child.
+	// The reason both child and parent have file descriptors refering to the pipe, 
+	// therefore, we must close the write end both in parent and child so that the 
+	// read end won't block. 
+	close(fds[1]);
+
+	int prime, np[2], next, pid;
+	// Read the first "p": prime.
+	int count = read(fds[0], &prime, SIZE_INT);
+	if (count == 0)
+		exit(0);
+	printf("pid %d --> %d\n", getpid(), prime);
+	
+	// Create another pipe.
+	pipe(np);
+    // The current child should creat grandchild to feed numbers.
+	pid = fork();
+	if (pid > 0) {
+		// The current child is a new parent prcess.
+		// Close the read end at the write side.
+		close(np[0]);
+		// Keep on writing numbers to the write end.
+		while (read(fds[0], &next, SIZE_INT)) {
+			// Drop multiples of the first prime.
+			if (next % prime == 0)
+				continue;
+			write(np[1], &next, SIZE_INT);
+		}
+		// After reading "fds", close it.
+		close(fds[0]);
+		// Close the write end after the while loop; Wrinting to a pipe is finished. 
+		close(np[1]);
+		wait(0);
+	} else if (pid == 0) {
+		// Newly created child process.
+		close(np[1]);
+		sieve(np);
+	}
+	
+	// Actually, all of the processes are connected by pipes with the recursive "sieve".
+
+	exit(0);
+
+}
+
+int main(int argc, char *argv[])
+{
+	int n, pid;
+
+	int p[2];
+	// Create a pipe.
+	pipe(p);
+
+	// Create a child process.
+	pid = fork();
+
+	// The parent process.
+	if (pid > 0) {
+		// Close the read end of a pipe since parent only needs to write. 
+		close(p[0]);
+
+		for (n = 2; n < 35; n++) {
+			write(p[1], &n,  sizeof(int));
+		}
+		// When writing ends in the for loop, close the write end so that the read end won't block.
+		close(p[1]);
+
+		wait(0);
+
+	} else if (pid == 0) {
+	// A child process.
+
+		// Wrong!
+		//loop_proc(p);
+        
+		// Correct one
+        sieve(p);
+		exit(0);
+	} else {
+		fprintf(2, "fork error!");
+	}
+	exit(0);
+}
+```
 
 
 
 ##### 1.4) find
-
-===============================
 
 **The Question**
 
@@ -434,8 +632,6 @@ Some hints:
 - You'll need to use C strings. Have a look at K&R (the C book), for example Section 5.5.    
 -  Note that == does not compare strings like in Python. Use strcmp() instead.    
 - Add the program to `UPROGS` in Makefile.  
-
-================================
 
 **Let's analyse.** 
 

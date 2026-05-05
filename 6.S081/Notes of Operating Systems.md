@@ -148,6 +148,16 @@ Note, as aforementioned,  `fork()` returns both in the original and new processe
 
 1. `exit(0)`: 0 indicates success and 1 indicates failure. 
 
+###### read(...)
+
+1. Note that `read(int fd, char *buf, int n)` will only read `n` bytes each time. In order to keep reading, we should use `while` loop since it returns 0 if it reaches the end of a file.
+
+   ```c
+   while(read(fd, &n, sizeof(int))) {}
+   ```
+
+   
+
 ###### write(...)
 
 1. `int write(int fd, char *buf, int n)`: 
@@ -160,7 +170,7 @@ Note, as aforementioned,  `fork()` returns both in the original and new processe
 
    ```c
    int n = 0x17; // ETB (ends of trans, blk)
-   write(1, &n, 1);  // Nothing is displayed on the console.
+   write(1, &n, 1);  // Though the "ETB" is printed, nothing is displayed on the console.
    int m = 0x42; // 'B'
    write(1, &m, 1)		// It will display 'B'.
    ```
@@ -190,7 +200,7 @@ In Unix-like operating systems, such as RISC, a process reads from file descript
 
 ##### How a process obtain a file descriptor?
 
-A process can obtain a file descriptor by opening a file, directory, device, creating a pipe or just duplicating an existing file descriptor(`dup(int fd)`).
+A process can obtain a file descriptor by opening a file(`open(char *file, int flags)`), directory, device, creating a pipe or just duplicating an existing file descriptor(`dup(int fd)`).
 
 ##### Notes of I/O and File Descriptors
 
@@ -301,7 +311,7 @@ It is the same with a system call named `dup(...)`.
 
   Pipe is a small kernel buffer exposed to two or more processes; it is used for the communication of these processes. As an illustration, `ls foo | grep test` creates a pipe between `ls` and `grep`. 
 
-  Note that a pipe is a file descriptor, too. In `int fds[2]; int pipe(fds);` the function `pipe(p)`  creates a new pipe and put another file descriptors, namely read and write, into the pipe.
+  Note that a pipe is a file descriptor, too. In `int fds[2]; int pipe(fds);` the function `pipe(p)`  creates a new pipe and put another two file descriptors, namely read and write, into the pipe.
 
 - What are pipes used for?
 
